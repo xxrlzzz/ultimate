@@ -26,19 +26,27 @@
  */
 package de.uni_freiburg.informatik.ultimate.lib.pea;
 
-import java.util.Collections;
+import java.util.*;
 
 public class Transition {
 	private final Phase mSrc;
 	private final Phase mDest;
-	private final String[] mResets;
+	private String[] mResets;
 	private CDD mGuard;
+	private HashMap<String, Integer> mClockWriter;
+
+	/**
+	 * whether this transation launch a new pea.
+	 */
+	public boolean isParallel = false;
+
 
 	public Transition(final Phase src, final CDD guard, final String[] resets, final Phase dest) {
 		mSrc = src;
 		mGuard = guard;
 		mResets = resets;
 		mDest = dest;
+		mClockWriter = new HashMap<String, Integer>();
 	}
 
 	@Override
@@ -109,6 +117,18 @@ public class Transition {
 		return mResets;
 	}
 
+	public void addReset(String reset) {
+		for (String rt : mResets) {
+			if (rt.equals(reset)) {
+				return;
+			}
+		}
+		final String[] nResets = new String[mResets.length+1];
+		System.arraycopy(mResets, 0, nResets, 0, mResets.length);
+		nResets[mResets.length] = reset;
+		mResets = nResets;
+	}
+
 	public Phase getSrc() {
 		return mSrc;
 	}
@@ -119,5 +139,42 @@ public class Transition {
 
 	public void setGuard(final CDD guard) {
 		mGuard = guard;
+	}
+
+	public void putClockWriter(String clock, int target) {
+		// not check the mResets!!
+		mClockWriter.put(clock, target);
+	}
+
+	public HashMap<String, Integer> getClockWriter() {
+		return mClockWriter;
+	}
+
+	public void setClockWriter(HashMap<String, Integer> writer) {
+		mClockWriter = writer;
+	}
+
+	public void mergeCheck(Transition oth) {
+		if (oth.getSrc().compareTo(getSrc()) != 0 || oth.getDest().compareTo(getDest()) != 0) {
+			throw new RuntimeException("合并两个起止点不同的变迁");
+		}
+	}
+
+	public Transition mergeAnd(Transition oth, Phase nSrc, Phase nDest) {
+//		mergeCheck(oth);
+		// 合并 guard， reset， rewriter
+		// 起止点用老的
+		CDD guard = oth.getGuard().and(getGuard());
+		Set<String> resets = new HashSet<>();
+		resets.addAll(Arrays.asList(oth.getResets()));
+		resets.addAll(Arrays.asList(getResets()));
+		HashMap<String, Integer> rewriter = new HashMap<String, Integer>();
+		rewriter.putAll(oth.getClockWriter());
+		rewriter.putAll(getClockWriter());
+		Phase src = Objects.requireNonNullElse(nSrc, getSrc());
+		Phase dest = Objects.requireNonNullElse(nDest, getDest());
+		Transition t = new Transition(src, guard, resets.toArray(new String[]{}), dest);
+		t.setClockWriter(rewriter);
+		return t;
 	}
 }

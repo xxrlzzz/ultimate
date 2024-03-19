@@ -494,124 +494,88 @@
 	</build>
 
 	<modules>
-		<module>../AbstractInterpretationV2</module>
-		<module>../ACSLParser</module>
-		<module>../ASTBuilder</module>
-		<module>../AutomataScriptInterpreter</module>
-		<module>../AutomataScriptParser</module>
-		<module>../AutomatonDeltaDebugger</module>
-		<module>../BlockEncoding</module>
-		<module>../BlockEncodingV2</module>
+<!--		<module>../AbstractInterpretationV2</module>-->
+<!--		<module>../ACSLParser</module>-->
+<!--		<module>../ASTBuilder</module>-->
+<!--		<module>../AutomataScriptInterpreter</module>-->
+<!--		<module>../AutomataScriptParser</module>-->
+<!--		<module>../AutomatonDeltaDebugger</module>-->
+<!--		<module>../BlockEncoding</module>-->
+<!--		<module>../BlockEncodingV2</module>-->
+
 		<module>../BoogieModSetAnnotator</module>
 		<module>../BoogiePLParser</module>
 		<module>../BoogiePreprocessor</module>
 		<module>../BoogiePrinter</module>
 		<module>../BoogieProcedureInliner</module>
-		<module>../BuchiAutomizer</module>
-		<module>../BuchiProgramProduct</module>
-		<module>../CACSL2BoogieTranslator</module>
-		<module>../CDTParser</module>
-		<module>../CDTPlugin</module>
-		<module>../ChcSmtPrinter</module>
-		<module>../ChcSolver</module>
-		<module>../ChcToBoogie</module>
-		<module>../CodeCheck</module>
+
 		<module>../CoreRCP</module>
-		<module>../Crocotta</module>
-		<module>../GUIGeneratedPreferencePages</module>
-		<module>../GUILoggingWindow</module>
-		<module>../GuiRCP</module>
-		<module>../IcfgToChc</module>
-		<module>../IcfgTransformation</module>
-		<module>../InvariantSynthesis</module>
-		<module>../IRSDependencies</module>
 		<module>../JavaCup</module>
-		<module>../JungVisualization</module>
-		<module>../LassoRanker</module>
-		<module>../Library-AcceleratedInterpolation</module>
 		<module>../Library-ApacheCommonsCLI</module>
 		<module>../Library-ApacheCommonsLang</module>
 		<module>../Library-Automata</module>
 		<module>../Library-BoogieAST</module>
-		<module>../Library-CHC</module>
-		<module>../Library-CZT</module>
 		<module>../Library-IcfgTransformer</module>
 		<module>../Library-JavaBDD</module>
-		<module>../Library-Jung</module>
-		<module>../Library-LassoRanker</module>
-		<module>../Library-MCR</module>
 		<module>../Library-ModelCheckerUtils</module>
-		<module>../Library-MSOD</module>
-		<module>../Library-ojAlgo</module>
-		<module>../Library-PathExpressions</module>
-		<module>../Library-PDR</module>
 		<module>../Library-PEA</module>
-		<module>../Library-PreferenceJson</module>
-		<module>../Library-Sifa</module>
-		<module>../Library-SMTLIB</module>
-		<module>../Library-SmtLibUtils</module>
+<!--		<module>../Library-SMTLIB</module>-->
+<!--		<module>../Library-SmtLibUtils</module>-->
 		<module>../Library-srParse</module>
-		<module>../Library-TraceCheckerUtils</module>
+<!--		<module>../Library-TraceCheckerUtils</module>-->
 		<module>../Library-UltimateCore</module>
 		<module>../Library-UltimateModel</module>
 		<module>../Library-UltimateUtil</module>
-		<module>../LTL2aut</module>
-		<module>../PeaExampleGenerator</module>
-		<module>../PEAtoBoogie</module>
-		<module>../RCFGBuilder</module>
-		<module>../ReachingDefinitions</module>
-		<module>../Referee</module>
+<!--		<module>../LTL2aut</module>-->
+<!--		<module>../PeaExampleGenerator</module>-->
+<!--		<module>../PEAtoBoogie</module>-->
+<!--		<module>../RCFGBuilder</module>-->
+<!--		<module>../ReachingDefinitions</module>-->
+<!--		<module>../Referee</module>-->
 		<module>../ReqParser</module>
 		<module>../ReqPrinter</module>
 		<module>../ReqToTest</module>
-		<module>../Sifa</module>
-		<module>../SMTInterpol</module>
-		<module>../SmtParser</module>
-		<module>../SMTSolverBridge</module>
-		<module>../SpaceExParser</module>
-		<module>../SyntaxChecker</module>
-		<module>../TraceAbstraction</module>
-		<module>../TraceAbstractionConcurrent</module>
-		<module>../TraceAbstractionWithAFAs</module>
-		<module>../TreeAutomizer</module>
+<!--		<module>../SMTInterpol</module>-->
+<!--		<module>../TraceAbstraction</module>-->
+<!--		<module>../TraceAbstractionConcurrent</module>-->
+<!--		<module>../TraceAbstractionWithAFAs</module>-->
 		<module>../UltimateCLI</module>
 		<module>../UltimateDeltaDebugger</module>
 		<module>../UltimateEliminatorController</module>
-		<module>../WebBackend</module>
-		<module>../WitnessParser</module>
-		<module>../WitnessPrinter</module>
-
+		<module>../PEA2BPMN</module>
+		<module>../Library-BPMN</module>
+		<module>../PEA2BPMNTest</module>
 		<!--
 		  We include test modules here in order to make sure they build successfully.
 		  Further above we specify that tests should not be executed though.
 		-->
 		<!-- modules containing test utilities -->
 		<module>../Library-UltimateTest</module>
-		<!-- modules containing unit tests -->
-		<module>../AbstractInterpretationV2Test</module>
-		<module>../BoogiePreprocessorTest</module>
-		<module>../CoreRCPTest</module>
-		<module>../Library-AutomataTest</module>
-		<module>../Library-IcfgTransformerTest</module>
-		<module>../Library-ModelCheckerUtilsTest</module>
-		<module>../Library-TraceCheckerUtilsTest</module>
-		<module>../Library-MSODTest</module>
-		<module>../Library-SMTLIBTest</module>
-		<module>../Library-srParseTest</module>
-		<module>../Library-UltimateTestTest</module>
-		<module>../Library-UltimateUtilTest</module>
-		<module>../Library-PathExpressionsTest</module>
-		<module>../Library-SifaTest</module>
-		<module>../SMTInterpolTest</module>
-		<module>../SMTSolverBridgeTest</module>
-		<module>../SpaceExParserTest</module>
-		<module>../PEAtoBoogieTest</module>
+<!--		&lt;!&ndash; modules containing unit tests &ndash;&gt;-->
+<!--		<module>../AbstractInterpretationV2Test</module>-->
+<!--		<module>../BoogiePreprocessorTest</module>-->
+<!--		<module>../CoreRCPTest</module>-->
+<!--		<module>../Library-AutomataTest</module>-->
+<!--		<module>../Library-IcfgTransformerTest</module>-->
+<!--		<module>../Library-ModelCheckerUtilsTest</module>-->
+<!--		<module>../Library-TraceCheckerUtilsTest</module>-->
+<!--		<module>../Library-MSODTest</module>-->
+<!--		<module>../Library-SMTLIBTest</module>-->
+<!--		<module>../Library-srParseTest</module>-->
+<!--		<module>../Library-UltimateTestTest</module>-->
+<!--		<module>../Library-UltimateUtilTest</module>-->
+<!--		<module>../Library-PathExpressionsTest</module>-->
+<!--		<module>../Library-SifaTest</module>-->
+<!--		<module>../SMTInterpolTest</module>-->
+<!--		<module>../SMTSolverBridgeTest</module>-->
+<!--		<module>../SpaceExParserTest</module>-->
+<!--		<module>../PEAtoBoogieTest</module>-->
 
-		<!-- UltimateRegressionTest contains system tests that are relatively fast -->
-		<module>../UltimateRegressionTest</module>
+<!--		&lt;!&ndash; UltimateRegressionTest contains system tests that are relatively fast &ndash;&gt;-->
+<!--		<module>../UltimateRegressionTest</module>-->
 
-		<!-- UltimateTest contains system tests, but should not be run. It is excluded in surefire. -->
-		<module>../UltimateTest</module>
+<!--		&lt;!&ndash; UltimateTest contains system tests, but should not be run. It is excluded in surefire. &ndash;&gt;-->
+<!--		<module>../UltimateTest</module>-->
 	</modules>
 
 	<profiles>

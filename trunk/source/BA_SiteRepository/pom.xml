@@ -49,18 +49,18 @@
 									<id>ReqAnalyzer</id>
 									<attachId>ReqAnalyzer</attachId>
 								</product>
-								<product>
-									<id>DeltaDebugger</id>
-									<attachId>UltimateDeltaDebugger</attachId>
-								</product>
-								<product>
-									<id>UltimateEliminator</id>
-									<attachId>UltimateEliminator</attachId>
-								</product>
-								<product>
-									<id>WebBackend</id>
-									<attachId>WebBackend</attachId>
-								</product>
+<!--								<product>-->
+<!--									<id>DeltaDebugger</id>-->
+<!--									<attachId>UltimateDeltaDebugger</attachId>-->
+<!--								</product>-->
+<!--								<product>-->
+<!--									<id>UltimateEliminator</id>-->
+<!--									<attachId>UltimateEliminator</attachId>-->
+<!--								</product>-->
+<!--								<product>-->
+<!--									<id>WebBackend</id>-->
+<!--									<attachId>WebBackend</attachId>-->
+<!--								</product>-->
 							</products>
 						</configuration>
 					</plugin>

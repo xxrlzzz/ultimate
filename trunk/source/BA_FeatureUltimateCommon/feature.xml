@@ -274,6 +274,13 @@
          unpack="false"/>
 
    <plugin
+           id="com.xxrl.lib.BPMN"
+           download-size="0"
+           install-size="0"
+           version="0.0.0"
+           unpack="false"/>
+
+   <plugin
          id="de.uni_freiburg.informatik.ultimate.lib.smtlib"
          download-size="0"
          install-size="0"
@@ -314,6 +321,13 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+           id="de.uni_freiburg.informatik.ultimate.pea2bpmn"
+           download-size="0"
+           install-size="0"
+           version="0.0.0"
+           unpack="false"/>
 
    <plugin
          id="de.uni_freiburg.informatik.ultimate.smtinterpol"

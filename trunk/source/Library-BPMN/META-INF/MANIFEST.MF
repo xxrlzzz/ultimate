@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Library-BPMN
+Bundle-SymbolicName: com.xxrl.lib.BPMN
+Bundle-Version: 0.0.1
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Export-Package: com.xxrl.lib.BPMN,
+    main.kotlin.bpmn,
+    main.kotlin.bpmn.builder,
+    main.kotlin.bpmn.element,
+    main.kotlin.bpmn.xml
+Require-Bundle: de.uni_freiburg.informatik.ultimate.lib.util,
+ de.uni_freiburg.informatik.ultimate.lib.ultimatemodel,
+ de.uni_freiburg.informatik.ultimate.lib.core
+Automatic-Module-Name: com.xxrl.lib.BPMN

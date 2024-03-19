@@ -1,0 +1,23 @@
+.name "case1"
+.type PN
+
+.places
+pS
+pA
+pE
+pB
+pA_
+
+.transitions
+tA
+tAccount
+tB
+tE
+
+.flows
+tA: {1*pS} -> {1*pA}
+tAccount: {1*pA} -> {1*pA_}
+tB: {1*pA_} -> {1*pB}
+tE: {1*pB} -> {1*pE}
+
+.initial_marking {}

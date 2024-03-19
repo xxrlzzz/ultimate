@@ -158,6 +158,10 @@ public final class CDD {
 	}
 
 	public boolean isEqual(final CDD cdd) {
+		if (cdd.mDecision == null || mDecision == null) {
+			return this == cdd;
+		}
+
 		if (mDecision.equals(cdd.mDecision)) {
 			return Arrays.equals(mChilds, cdd.mChilds);
 		}

@@ -85,15 +85,18 @@ public class RangeDecision extends Decision<RangeDecision> {
 		int elems = 0;
 
 		for (int i = 0; i < mLimits.length; i++) {
+			// 因为childs是有序的，只考虑跟前面一个不同即可
 			if (childs[i] != childs[i + 1]) {
 				elems++;
 			}
 		}
 
+		// 只有一个，整区间，返回
 		if (elems == 0) {
 			return childs[0];
 		}
 
+		// 区间数量减少，重新紧凑拷贝
 		if (elems < mLimits.length) {
 			final int[] nlimits = new int[elems++];
 			final CDD[] nchilds = new CDD[elems];
@@ -116,6 +119,9 @@ public class RangeDecision extends Decision<RangeDecision> {
 	}
 
 	public static CDD create(final String var, final int op, final int value) {
+		// .. 2*v . 2*v+1 ...
+		//  b     b       b
+		// 拆成 小于v，等于v，大于v的三个区间
 		switch (op) {
 		case OP_EQ:
 			return CDD.create(new RangeDecision(var, new int[] { 2 * value, (2 * value) + 1 }), FTF);
@@ -150,13 +156,16 @@ public class RangeDecision extends Decision<RangeDecision> {
 		while ((optr < olimits.length) || (tptr < mLimits.length)) {
 			nchilds[nptr] = childs[tptr].and(ochilds[optr], cache);
 
+			// 化简，如果和前面child的一样，这个就取消掉，直接操作前面的
 			if ((nptr > 0) && (nchilds[nptr] == nchilds[nptr - 1])) {
 				nptr--;
 			}
 
+			// 设置 limits，优先使用小的 limits
 			if ((optr == olimits.length) || ((tptr < mLimits.length) && (mLimits[tptr] < olimits[optr]))) {
 				nlimits[nptr++] = mLimits[tptr++];
 			} else {
+				// 合并一样的limit
 				if ((tptr < mLimits.length) && (mLimits[tptr] == olimits[optr])) {
 					tptr++;
 				}
@@ -165,16 +174,18 @@ public class RangeDecision extends Decision<RangeDecision> {
 			}
 		}
 
+		// 操作最后一个、 前面比较的是 limits 的长度， child 数组会多一个
 		nchilds[nptr] = childs[tptr].and(ochilds[optr], cache);
-
 		if ((nptr > 0) && (nchilds[nptr] == nchilds[nptr - 1])) {
 			nptr--;
 		}
 
+		// 只有一个，表示了整个区间，直接返回
 		if (nptr == 0) {
 			return nchilds[0];
 		}
 
+		// 如果有状态被化简了，拷贝一下数组
 		if (nptr != nlimits.length) {
 			final int[] nnlimits = new int[nptr];
 			System.arraycopy(nlimits, 0, nnlimits, 0, nptr);
@@ -244,6 +255,7 @@ public class RangeDecision extends Decision<RangeDecision> {
 
 	@Override
 	public CDD assume(final Decision<?> other, final CDD[] childs, final CDD[] ochilds) {
+		// assume 是个什么鬼？
 		final int[] olimits = ((RangeDecision) other).mLimits;
 
 		/* intersect all intervals */
@@ -310,13 +322,16 @@ public class RangeDecision extends Decision<RangeDecision> {
 		int optr = 0;
 
 		while ((optr < olimits.length) || (tptr < mLimits.length)) {
+			// 每个都要imply
 			if (!childs[tptr].implies(ochilds[optr])) {
 				return false;
 			}
 
+			// 选小的
 			if ((optr == olimits.length) || ((tptr < mLimits.length) && (mLimits[tptr] < olimits[optr]))) {
 				tptr++;
 			} else {
+				// 去重
 				if ((tptr < mLimits.length) && (mLimits[tptr] == olimits[optr])) {
 					tptr++;
 				}
@@ -324,7 +339,7 @@ public class RangeDecision extends Decision<RangeDecision> {
 				optr++;
 			}
 		}
-
+		// 最后一个 imply
 		return childs[tptr].implies(ochilds[optr]);
 	}
 
@@ -367,18 +382,19 @@ public class RangeDecision extends Decision<RangeDecision> {
 
 	private String getInfixString(final String var, final String leqOp, final String leOp, final String geqOp,
 			final String geOp, final String eqOp, final String andOp, final int childs) {
+		// 第一个区间是小于
 		if (childs == 0) {
 			return var + (((mLimits[0] & 1) == 0) ? leOp : leqOp) + (mLimits[0] / 2);
 		}
-
+		// 最后一个区间是大于
 		if (childs == mLimits.length) {
 			return var + (((mLimits[mLimits.length - 1] & 1) == 1) ? geOp : geqOp) + (mLimits[mLimits.length - 1] / 2);
 		}
-
+		// 中间的两个点描述了一个值，是等于
 		if ((mLimits[childs - 1] / 2) == (mLimits[childs] / 2)) {
 			return var + eqOp + (mLimits[childs] / 2);
 		}
-
+		// 中间两点不是一个值， 两个等于
 		return var + (((mLimits[childs - 1] & 1) == 1) ? geOp : geqOp) + (mLimits[childs - 1] / 2) + andOp + var
 				+ (((mLimits[childs] & 1) == 0) ? leOp : leqOp) + (mLimits[childs] / 2);
 	}

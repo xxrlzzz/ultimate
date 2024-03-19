@@ -54,9 +54,13 @@ public class DotWriterNew {
 				for (final String reset : transition.getResets()) {
 					resets += "<br/>" + reset + " :=0";
 				}
+				String optionProps = "";
+				if (transition.isParallel) {
+					optionProps += "style=dashed, color=red";
+				}
 
-				fmt.format("\t%s -> %s [label=<<font COLOR=\"#377eb8\">%s</font>%s>];%s", src, dst, guard, resets,
-						LINE_SEP);
+				fmt.format("\t%s -> %s [label=<<font COLOR=\"#377eb8\">%s</font>%s>%s];%s", src, dst, guard, resets,
+						optionProps, LINE_SEP);
 			}
 			fmt.format("%s", LINE_SEP);
 		}

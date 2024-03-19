@@ -1,0 +1,22 @@
+.name "model"
+.type PN
+
+.places
+p(d_sE_1237t98|A_nT_0z2szkx)
+p(A_nT_0z2szkx|B_nT_1utdj89)
+p(A_nT_0z2szkx_|B_nT_1utdj89)
+p(B_nT_1utdj89|d_eE_11c55ra)
+
+.transitions
+t(d_sE_1237t98|A_nT_0z2szkx)
+t(A_nT_0z2szkx|B_nT_1utdj89)
+tAccountant_lane_0a2rzxa
+t(B_nT_1utdj89|d_eE_11c55ra)
+
+.flows
+t(d_sE_1237t98|A_nT_0z2szkx): {} -> {1*p(d_sE_1237t98|A_nT_0z2szkx)}
+t(A_nT_0z2szkx|B_nT_1utdj89): {1*p(d_sE_1237t98|A_nT_0z2szkx)} -> {1*p(A_nT_0z2szkx|B_nT_1utdj89)}
+tAccountant_lane_0a2rzxa: {1*p(A_nT_0z2szkx|B_nT_1utdj89)} -> {1*p(A_nT_0z2szkx_|B_nT_1utdj89)}
+t(B_nT_1utdj89|d_eE_11c55ra): {1*p(A_nT_0z2szkx_|B_nT_1utdj89)} -> {1*p(B_nT_1utdj89|d_eE_11c55ra)}
+
+.initial_marking {}

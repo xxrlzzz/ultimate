@@ -23,11 +23,7 @@
  */
 package de.uni_freiburg.informatik.ultimate.lib.pea;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 import de.uni_freiburg.informatik.ultimate.lib.pea.util.SimpleSet;
 
@@ -102,6 +98,10 @@ public class Phase implements Comparable<Phase> {
 		return clockInv;
 	}
 
+	public void setClockInvariant(final CDD inv) {
+		clockInv = inv;
+	}
+
 	public Set<String> getStoppedClocks() {
 		return stoppedClocks;
 	}
@@ -127,6 +127,14 @@ public class Phase implements Comparable<Phase> {
 		return result;
 	}
 
+	public void updateOutgoingTransition(final Phase dest, Transition newT) {
+		for (int i = 0; i < transitions.size(); i++) {
+			if (transitions.get(i).getDest().equals(dest)) {
+				transitions.set(i, newT);
+			}
+		}
+	}
+
 	/** @return the transition added or modified */
 	public Transition addTransition(final Phase dest, final CDD guard, final String[] resets) {
 		final Iterator<Transition> it = transitions.iterator();
@@ -145,6 +153,10 @@ public class Phase implements Comparable<Phase> {
 		transitions.add(t);
 
 		return t;
+	}
+
+	public void removeTransition(Transition t) {
+		transitions.remove(t);
 	}
 
 	@Override
@@ -219,6 +231,13 @@ public class Phase implements Comparable<Phase> {
 		return flags;
 	}
 
+	public Phase and(final Phase oth, String name) {
+		Set<String> sClocks = new HashSet<String>(stoppedClocks);
+		sClocks.addAll(oth.stoppedClocks);
+		return new Phase(name, getStateInvariant().and(oth.getStateInvariant()),
+                getClockInvariant().and(oth.getClockInvariant()), sClocks);
+	}
+
 	// jf
 	public void setName(final String name) {
 		this.name = name;
@@ -248,5 +267,14 @@ public class Phase implements Comparable<Phase> {
 
 	public int getID() {
 		return ID;
+	}
+
+	/**
+	 * test equality by state invariant
+	 * @param oth
+	 * @return
+	 */
+	public boolean equalByState(final Phase oth) {
+		return getStateInvariant().and(oth.getStateInvariant()).isEqual(getStateInvariant());
 	}
 }
