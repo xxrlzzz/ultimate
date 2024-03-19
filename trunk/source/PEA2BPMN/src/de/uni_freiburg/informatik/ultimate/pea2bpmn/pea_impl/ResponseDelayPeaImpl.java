@@ -39,7 +39,7 @@ public class ResponseDelayPeaImpl implements IPeaImpl<ResponseDelayPattern> {
         pr.addTransition(par, CDD.TRUE, new String[]{arClock});
         par.addTransition(ps, CDD.TRUE, new String[]{});
 
-        String peaName = mReq.getId() + "-" + mReq.getName();
+        String peaName = id + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, par, ps}, new Phase[]{pr},
                 Collections.singletonList(arClock));
         pea.addOut(ps, CDD.TRUE);

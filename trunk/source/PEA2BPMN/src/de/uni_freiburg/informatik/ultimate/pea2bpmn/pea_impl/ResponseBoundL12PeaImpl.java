@@ -24,6 +24,7 @@ public class ResponseBoundL12PeaImpl implements IPeaImpl<ResponseBoundL12Pattern
         // P and Q are reserved for scope.
         // R, S, ... are reserved for CDDs, but they are parsed in reverse order.
         final SrParseScope<?> scope = mReq.getScope();
+        final String id = mReq.getId();
         final CDD R = mReq.getCdds().get(1);
         final CDD S = mReq.getCdds().get(0);
         final int c1 = SmtUtils.toInt(mReq.getDurations().get(0)).intValueExact();
@@ -34,8 +35,8 @@ public class ResponseBoundL12PeaImpl implements IPeaImpl<ResponseBoundL12Pattern
 
         CDD conditionDr = RangeDecision.create(rClock, RangeDecision.OP_GTEQ, c1);
         CDD consDr =  RangeDecision.create(sClock, RangeDecision.OP_GTEQ, c2);
-        Phase pr = new Phase("st1", R);
-        Phase ps = new Phase("st2", S, consDr);
+        Phase pr = new Phase(id + "_st1", R);
+        Phase ps = new Phase(id + "_st2", S, consDr);
         pr.addTransition(ps, conditionDr, new String[]{sClock});
         String peaName = mReq.getId() + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, ps}, new Phase[]{pr}, List.of(rClock, sClock));

@@ -34,27 +34,16 @@ import de.uni_freiburg.informatik.ultimate.core.model.services.IUltimateServiceP
 import de.uni_freiburg.informatik.ultimate.lib.pea.*;
 import de.uni_freiburg.informatik.ultimate.lib.pea.modelchecking.DotWriterNew;
 import de.uni_freiburg.informatik.ultimate.lib.srparse.ReqParser;
-import de.uni_freiburg.informatik.ultimate.lib.srparse.pattern.DurationBoundLPattern;
 import de.uni_freiburg.informatik.ultimate.lib.srparse.pattern.PatternType;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.pea_impl.PeaImplBuilder;
+import de.uni_freiburg.informatik.ultimate.pea2bpmn.pea_merge.*;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
-import org.hamcrest.core.Is;
-import org.junit.Assert;
+import de.uni_freiburg.informatik.ultimate.test.mocks.UltimateMocks;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import de.uni_freiburg.informatik.ultimate.boogie.BoogieLocation;
-import de.uni_freiburg.informatik.ultimate.boogie.DeclarationInformation;
-import de.uni_freiburg.informatik.ultimate.boogie.DeclarationInformation.StorageClass;
-import de.uni_freiburg.informatik.ultimate.boogie.ExpressionFactory;
-import de.uni_freiburg.informatik.ultimate.boogie.ast.Expression;
-import de.uni_freiburg.informatik.ultimate.boogie.ast.IdentifierExpression;
-import de.uni_freiburg.informatik.ultimate.boogie.ast.UnaryExpression.Operator;
-import de.uni_freiburg.informatik.ultimate.boogie.output.BoogiePrettyPrinter;
-import de.uni_freiburg.informatik.ultimate.boogie.type.BoogieType;
-import de.uni_freiburg.informatik.ultimate.test.mocks.UltimateMocks;
 
 /**
  *
@@ -170,13 +159,13 @@ public class PeaFragmentTestsuite {
 //				inits.toArray(new Phase[]{}), new ArrayList<>(clocks));
 //		System.out.println(DotWriterNew.createDotString(commonMerge));
 
-		PEAFragment merged = peaFragments.get(0).mergeCondition(peaFragments.get(1));
+		PEAFragment merged = new ConditionMerge().merge(peaFragments.get(0), peaFragments.get(1));
 		String dot = DotWriterNew.createDotString(merged);
 		System.out.println(dot);
 	}
 
 
-	@Test
+//	@Test
 	public void testConstraintMerge() throws Exception {
 		final String testString =
 				"REQ1_0: Globally, it is always the case that once \"R1\" becomes satisfied, \"S\" holds for at least \"10\" time units\n" +
@@ -189,15 +178,7 @@ public class PeaFragmentTestsuite {
 			peaFragments.add(PeaImplBuilder.build(pattern).generate());
 		}
 
-//		Set<Phase> phases = new HashSet<Phase>();
-//		Set<String> clocks = new HashSet<String>();
-//		Set<Phase> inits = new HashSet<Phase>();
-//		peaFragments.get(0).mergeCommon(peaFragments.get(1), phases, clocks, inits);
-//		PEAFragment commonMerge = new PEAFragment("comm", phases.toArray(new Phase[]{}),
-//				inits.toArray(new Phase[]{}), new ArrayList<>(clocks));
-//		System.out.println(DotWriterNew.createDotString(commonMerge));
-
-		PEAFragment merged = peaFragments.get(0).mergeConstraint(peaFragments.get(1));
+		PEAFragment merged = new ConstraintMerge().merge(peaFragments.get(0), peaFragments.get(1));
 		String dot = DotWriterNew.createDotString(merged);
 		System.out.println(dot);
 	}
@@ -215,21 +196,21 @@ public class PeaFragmentTestsuite {
 			peaFragments.add(PeaImplBuilder.build(pattern).generate());
 		}
 
-//		Set<Phase> phases = new HashSet<Phase>();
-//		Set<String> clocks = new HashSet<String>();
-//		Set<Phase> inits = new HashSet<Phase>();
-//		peaFragments.get(0).mergeCommon(peaFragments.get(1), phases, clocks, inits);
+//		Set<Phase> phases = new HashSet<>();
+//		Set<String> clocks = new HashSet<>();
+//		Set<Phase> inits = new HashSet<>();
+//		PairMergerUtils.mergeCommon(peaFragments.get(0), peaFragments.get(1), phases, clocks, inits);
 //		PEAFragment commonMerge = new PEAFragment("comm", phases.toArray(new Phase[]{}),
 //				inits.toArray(new Phase[]{}), new ArrayList<>(clocks));
 //		System.out.println(DotWriterNew.createDotString(commonMerge));
 
-		PEAFragment merged = peaFragments.get(0).mergeSequence(peaFragments.get(1));
+		PEAFragment merged = new SequenceMerge().merge(peaFragments.get(0), peaFragments.get(1));
 		String dot = DotWriterNew.createDotString(merged);
 		System.out.println(dot);
 	}
 
 
-//	@Test
+	@Test
 	public void testCompleteMerge() throws Exception {
 		final String testString =
 				"REQ1_0: Globally, it is always the case that once \"R\" becomes satisfied, \"S\" holds for at least \"10\" time units\n" +
@@ -242,15 +223,15 @@ public class PeaFragmentTestsuite {
 			peaFragments.add(PeaImplBuilder.build(pattern).generate());
 		}
 
-//		Set<Phase> phases = new HashSet<Phase>();
-//		Set<String> clocks = new HashSet<String>();
-//		Set<Phase> inits = new HashSet<Phase>();
-//		peaFragments.get(0).mergeCommon(peaFragments.get(1), phases, clocks, inits);
-//		PEAFragment commonMerge = new PEAFragment("comm", phases.toArray(new Phase[]{}),
-//				inits.toArray(new Phase[]{}), new ArrayList<>(clocks));
-//		System.out.println(DotWriterNew.createDotString(commonMerge));
+		Set<Phase> phases = new HashSet<>();
+		Set<String> clocks = new HashSet<>();
+		Set<Phase> inits = new HashSet<>();
+		PairMergerUtils.mergeCommon(peaFragments.get(0), peaFragments.get(1), phases, clocks, inits);
+		PEAFragment commonMerge = new PEAFragment("comm", phases.toArray(new Phase[]{}),
+			inits.toArray(new Phase[]{}), new ArrayList<>(clocks));
+		System.out.println(DotWriterNew.createDotString(commonMerge));
 
-		PEAFragment merged = peaFragments.get(0).mergeComplete(peaFragments.get(1));
+		PEAFragment merged = new CompleteMerge().merge(peaFragments.get(0), peaFragments.get(1));
 		String dot = DotWriterNew.createDotString(merged);
 		System.out.println(dot);
 	}

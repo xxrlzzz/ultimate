@@ -38,7 +38,7 @@ public class ResponseDelayBoundL2PeaImpl implements IPeaImpl<ResponseDelayBoundL
         String sClock = S + "t";
         CDD constraintDl = RangeDecision.create(arClock, RangeDecision.OP_LTEQ, c1);
         CDD constraintDr = RangeDecision.create(sClock, RangeDecision.OP_GTEQ, c2);
-        Phase par = new Phase(ar, CDD.TRUE, constraintDl);
+        Phase par = new Phase(id + "_" + ar, CDD.TRUE, constraintDl);
         Phase ps = new Phase(id + "_st2", S, constraintDr);
 
         pr.addTransition(par, CDD.TRUE, new String[]{arClock});

@@ -23,24 +23,25 @@ public class ResponseDelayBoundL1PeaImpl implements IPeaImpl<ResponseDelayBoundL
         // P and Q are reserved for scope.
         // R, S, ... are reserved for CDDs, but they are parsed in reverse order.
         final SrParseScope<?> scope = mReq.getScope();
+        final String id = mReq.getId();
         final CDD R = mReq.getCdds().get(1);
         final CDD S = mReq.getCdds().get(0);
         final int c1 = SmtUtils.toInt(mReq.getDurations().get(0)).intValueExact();
         final int c2 = SmtUtils.toInt(mReq.getDurations().get(1)).intValueExact();
 
-        Phase pr = new Phase("st1", R);
+        Phase pr = new Phase(id + "_st1", R);
+        Phase ps = new Phase(id + "st_2", S);
         String ar = "After_" + R;
         String arClock = ar + "t";
         String rClock = R + "t";
 
         CDD consDl = RangeDecision.create(arClock, RangeDecision.OP_LTEQ, c2);
         CDD condDr = RangeDecision.create(rClock, RangeDecision.OP_GTEQ, c1);
-        Phase par = new Phase(ar, CDD.TRUE, consDl);
-        Phase ps = new Phase(S.toString(), S);
+        Phase par = new Phase(id + "_" +ar, CDD.TRUE, consDl);
         pr.addTransition(par, condDr, new String[]{arClock});
         par.addTransition(ps, CDD.TRUE, new String[]{});
 
-        String peaName = mReq.getId() + "-" + mReq.getName();
+        String peaName = id + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, par, ps}, new Phase[]{pr},
                 List.of(arClock, rClock));
         pea.addOut(ps, CDD.TRUE);

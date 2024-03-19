@@ -41,7 +41,7 @@ public class TriggerResponseBoundL1PeaImpl implements IPeaImpl<TriggerResponseBo
         pr.addTransition(prs, CDD.TRUE, new String[]{});
         prs.addTransition(pr, CDD.TRUE, new String[]{});
 
-        String peaName = mReq.getId() + "-" + mReq.getName();
+        String peaName = id + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, prs, pst}, new Phase[]{pr, prs},
                 Collections.singletonList(rClock));
         pea.addOut(pr, rtLess.or(S.negate()));

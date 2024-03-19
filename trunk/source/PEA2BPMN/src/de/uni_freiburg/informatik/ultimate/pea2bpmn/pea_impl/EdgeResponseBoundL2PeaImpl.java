@@ -38,7 +38,7 @@ public class EdgeResponseBoundL2PeaImpl implements IPeaImpl<EdgeResponseBoundL2P
         Phase ps = new Phase(id + "_st2", S, constraintDr);
 
         pr.addTransition(ps, CDD.TRUE, new String[]{sClock});
-        String peaName = mReq.getId() + "-" + mReq.getName();
+        String peaName = id + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, ps}, new Phase[]{pr}, Collections.singletonList(sClock));
         pea.addOut(ps, constraintDr);
         pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), CDD.TRUE, CDD.TRUE, constraintDr));

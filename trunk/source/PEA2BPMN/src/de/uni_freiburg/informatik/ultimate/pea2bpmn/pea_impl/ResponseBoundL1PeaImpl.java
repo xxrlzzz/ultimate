@@ -36,7 +36,7 @@ public class ResponseBoundL1PeaImpl implements IPeaImpl<ResponseBoundL1Pattern> 
 
         CDD conditionDr = RangeDecision.create(rClock, RangeDecision.OP_GTEQ, c1);
         pr.addTransition(ps, conditionDr, new String[]{});
-        String peaName = mReq.getId() + "-" + mReq.getName();
+        String peaName = id + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, ps}, new Phase[]{pr},
                 Collections.singletonList(rClock));
         pea.addOut(ps, CDD.TRUE);

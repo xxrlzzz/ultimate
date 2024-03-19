@@ -22,13 +22,14 @@ public class DurationBoundLPeaImpl implements IPeaImpl<DurationBoundLPattern> {
     public PEAFragment generate() {
         final SrParseScope<?> scope = mReq.getScope();
         final CDD R = mReq.getCdds().get(0);
+        final String id = mReq.getId();
         final int c1 = SmtUtils.toInt(mReq.getDurations().get(0)).intValueExact();
 
         String rClock = R + "t";
         CDD constraintDr = RangeDecision.create(rClock, RangeDecision.OP_GTEQ, c1);
-        Phase pr = new Phase("st1", R, constraintDr);
+        Phase pr = new Phase(id + "_st1", R, constraintDr);
 
-        String peaName = mReq.getId() + "-" + mReq.getName();
+        String peaName = id + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr}, new Phase[]{pr},
                 Collections.singletonList(rClock));
         pea.addOut(pr, constraintDr);

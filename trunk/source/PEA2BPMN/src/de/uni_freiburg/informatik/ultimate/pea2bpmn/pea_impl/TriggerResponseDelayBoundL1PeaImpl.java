@@ -20,6 +20,7 @@ public class TriggerResponseDelayBoundL1PeaImpl implements IPeaImpl<TriggerRespo
     @Override
     public PEAFragment generate() {
         final SrParseScope<?> scope = mReq.getScope();
+        final String id = mReq.getId();
         final CDD R = mReq.getCdds().get(2);
         final CDD S = mReq.getCdds().get(1);
         final CDD R_S = R.and(S);
@@ -29,15 +30,15 @@ public class TriggerResponseDelayBoundL1PeaImpl implements IPeaImpl<TriggerRespo
         final int c2 = SmtUtils.toInt(mReq.getDurations().get(1)).intValueExact();
 
         String rClock = R + "t";
-        String af_rs = "After_R&S";
+        String af_rs = "After_" + R + "_" + S;
         String af_rsClock = af_rs + "t";
         CDD rtLess = RangeDecision.create(rClock, RangeDecision.OP_LT, c1);
         CDD rtGteq = rtLess.negate();
         // TODO: add reset for pr and prs
-        Phase pr = new Phase("st1", R);
-        Phase prs = new Phase("st2", R_S);
-        Phase paf_rs = new Phase(af_rs, RangeDecision.create(af_rsClock, RangeDecision.OP_LTEQ, c2));
-        Phase pt = new Phase("st3", T);
+        Phase pr = new Phase(id + "_st1", R);
+        Phase prs = new Phase(id + "_st2", R_S);
+        Phase paf_rs = new Phase(id + "_" + af_rs, RangeDecision.create(af_rsClock, RangeDecision.OP_LTEQ, c2));
+        Phase pt = new Phase(id + "_st3", T);
 
         pr.addTransition(paf_rs, rtGteq, new String[]{});
         prs.addTransition(paf_rs, rtGteq, new String[]{});

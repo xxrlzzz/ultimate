@@ -10,9 +10,9 @@ public class ReqDesc {
     private PatternType<?> originReq;
     private List<CDD> conditionVars;
     private List<CDD> constraintVars;
-    CDD conditionDuration;
-    CDD constraintDelay;
-    CDD constraintDuration;
+    public CDD conditionDuration;
+    public CDD constraintDelay;
+    public CDD constraintDuration;
 
     public ReqDesc(PatternType<?> req, List<CDD> conditions, List<CDD> constraints,
                    CDD conditionDr, CDD constraintDl, CDD constraintDr) {
