@@ -20,7 +20,6 @@ Require-Bundle: com.github.jhoenicke.javacup,
  de.uni_freiburg.informatik.ultimate.plugins.generator.rcfgbuilder,
  de.uni_freiburg.informatik.ultimate.lib.tracecheckerutils,
  de.uni_freiburg.informatik.ultimate.lib.automata,
- de.uni_freiburg.informatik.ultimate.lib.ultimatemodel,
- com.xxrl.lib.BPMN
+ de.uni_freiburg.informatik.ultimate.lib.ultimatemodel
 Export-Package: de.uni_freiburg.informatik.ultimate.pea2bpmn
 Automatic-Module-Name: de.uni.freiburg.informatik.ultimate.pea2bpmn

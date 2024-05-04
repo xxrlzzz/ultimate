@@ -8,6 +8,8 @@ import java.util.*;
 
 public class PEAFragment extends PhaseEventAutomata {
     ReqDesc mDesc;
+    Phase mDestPhase;
+    ArrayList<ReqDesc> mMergedDesc;
     ArrayList<Phase> mOut;
     HashMap<Phase, CDD> mOutCondition;
 
@@ -52,5 +54,105 @@ public class PEAFragment extends PhaseEventAutomata {
 
     public ReqDesc getDesc() {
         return mDesc;
+    }
+
+    public void addMergedDesc(ReqDesc desc) {
+        if (desc == null) {
+            return;
+        }
+        if (mMergedDesc == null) {
+            mMergedDesc = new ArrayList<>();
+        }
+        mMergedDesc.add(desc);
+    }
+
+    public ArrayList<ReqDesc> getMergedDesc() {
+        return mMergedDesc;
+    }
+
+    public String dumpJSON() {
+
+        StringBuilder outArray = new StringBuilder("[");
+        for (int i = 0; i < mOut.size(); i++) {
+            if (i > 0) {
+                outArray.append(",");
+            }
+            outArray.append("\"");
+            outArray.append(mOut.get(i).getName());
+            outArray.append("\"");
+//            outArray.append(mOut.get(i).getID()).append("-").append(mOut.get(i).getName());
+        }
+        outArray.append("]");
+        StringBuilder initArray = new StringBuilder("[");
+        for (int i = 0; i < mInit.length; i++) {
+            if (i > 0) {
+                initArray.append(",");
+            }
+            initArray.append("\"");
+            initArray.append(mInit[i].getName());
+            initArray.append("\"");
+//            initArray.append(mInit[i].getID()).append("-").append(mInit[i].getName());
+        }
+        initArray.append("]");
+        StringBuilder clockArray = new StringBuilder("[");
+        for (int i = 0; i < mClocks.size(); i++) {
+            if (i > 0) {
+                clockArray.append(",");
+            }
+            clockArray.append("\"");
+            clockArray.append(mClocks.get(i));
+            clockArray.append("\"");
+        }
+        clockArray.append("]");
+        StringBuilder variablesJSON = new StringBuilder("{");
+        if (mVariables != null) {
+            for (String key : mVariables.keySet()) {
+                variablesJSON.append(String.format("\"%s\": \"%s\",", key, mVariables.get(key)));
+            }
+            variablesJSON.deleteCharAt(variablesJSON.lastIndexOf(","));
+        }
+        variablesJSON.append("}");
+
+        StringBuilder phaseArray = new StringBuilder("[");
+        for (int i = 0; i < mPhases.length; i++) {
+            Phase p = mPhases[i];
+            if (i > 0) {
+                phaseArray.append(",");
+            }
+            phaseArray.append(String.format("{\"name\": \"%s\", \"state\": \"%s\", \"clock\": \"%s\"}",
+                    p.getName(), p.getStateInvariant().toUppaalString(), p.getClockInvariant().toUppaalString()));
+        }
+        phaseArray.append("]");
+
+        StringBuilder transArray = new StringBuilder("[");
+        for (Phase p: mPhases) {
+            for (Transition transition : p.getTransitions()) {
+                StringBuilder resets = new StringBuilder();
+                for (String reset : transition.getResets()) {
+                    resets.append(reset).append(",");
+                }
+                transArray.append(String.format("{\"src\": \"%s\", \"dest\": \"%s\", \"guard\": \"%s\", \"reset\": \"%s\", \"parallel\": \"%b\"}",
+                        transition.getSrc().getName(), transition.getDest().getName(), transition.getGuard().toUppaalString(), resets, transition.isParallel));
+            }
+            transArray.append(",");
+        }
+        transArray.deleteCharAt(transArray.lastIndexOf(","));
+        transArray.append("]");
+        StringBuilder reqBuilder = new StringBuilder("[");
+        if (mDesc != null && mDesc.getReq() != null) {
+//            req = mDesc.getReq().toString();
+            reqBuilder.append(mDesc.getReq().toString());
+        }
+        if (mMergedDesc != null) {
+            for (ReqDesc desc : mMergedDesc) {
+                reqBuilder.append(desc.getReq().toString()).append(",");
+            }
+            reqBuilder.deleteCharAt(reqBuilder.lastIndexOf(","));
+        }
+        reqBuilder.append("]");
+
+        return String.format("{\n\"name\": \"%s\",\n\"req\": \"%s\",\n\"out\": %s,\n\"init\": %s,\n" +
+                        "\"clocks\": %s,\n\"vars\": %s,\n\"phases\": %s,\n\"trans\": %s\n}",
+                getName(), reqBuilder, outArray, initArray, clockArray, variablesJSON, phaseArray, transArray);
     }
 }

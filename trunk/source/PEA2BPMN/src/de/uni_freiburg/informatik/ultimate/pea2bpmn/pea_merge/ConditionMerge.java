@@ -80,9 +80,10 @@ public class ConditionMerge extends IPeaMerger {
         }
 
         phases.remove(oConditionPhase);
+        inits.remove(oConditionPhase);
         // 要不要删其他的？
 
-        return makeFragment(left.getName() + "-" + right.getName());
+        return makeFragment(left,  right);
     }
 
 

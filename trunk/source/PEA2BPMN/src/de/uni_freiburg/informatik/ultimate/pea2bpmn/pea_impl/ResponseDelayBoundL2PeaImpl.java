@@ -10,15 +10,17 @@ import de.uni_freiburg.informatik.ultimate.lib.srparse.pattern.ResponseDelayBoun
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.ReqDesc;
 
-import java.util.Collections;
 import java.util.List;
 
-public class ResponseDelayBoundL2PeaImpl implements IPeaImpl<ResponseDelayBoundL2Pattern> {
+public class ResponseDelayBoundL2PeaImpl extends AbsPeaImpl<ResponseDelayBoundL2Pattern> {
     //  ResponseDelayBoundL2Pattern or EdgeResponseDelayBoundL2Patter
-    private final PatternType<?> mReq;
-
     public ResponseDelayBoundL2PeaImpl(PatternType<?> req) {
-        mReq = req;
+        super(req);
+        final CDD R = mReq.getCdds().get(1);
+        final CDD S = mReq.getCdds().get(0);
+        String ar = "After_" + R + "c";
+        mClocks.add(S + "c");
+        mClocks.add(ar);
     }
 
     @Override
@@ -26,30 +28,37 @@ public class ResponseDelayBoundL2PeaImpl implements IPeaImpl<ResponseDelayBoundL
         // P and Q are reserved for scope.
         // R, S, ... are reserved for CDDs, but they are parsed in reverse order.
         final SrParseScope<?> scope = mReq.getScope();
-        final String id = mReq.getId();
         final CDD R = mReq.getCdds().get(1);
         final CDD S = mReq.getCdds().get(0);
         final int c1 = SmtUtils.toInt(mReq.getDurations().get(0)).intValueExact();
         final int c2 = SmtUtils.toInt(mReq.getDurations().get(1)).intValueExact();
 
-        Phase pr = new Phase(id + "_st1", R);
         String ar = "After_" + R;
-        String arClock = ar + "t";
-        String sClock = S + "t";
-        CDD constraintDl = RangeDecision.create(arClock, RangeDecision.OP_LTEQ, c1);
-        CDD constraintDr = RangeDecision.create(sClock, RangeDecision.OP_GTEQ, c2);
-        Phase par = new Phase(id + "_" + ar, CDD.TRUE, constraintDl);
-        Phase ps = new Phase(id + "_st2", S, constraintDr);
+        String arClock = mClocks.get(1);
+        String sClock = mClocks.get(0);
+        CDD rDr = RangeDecision.create(arClock, RangeDecision.OP_LT, 1);
+        Phase pr = new Phase(id + "_st1", CDD.TRUE);
+        Phase p_true = new Phase(id + "_st3", CDD.TRUE);
 
-        pr.addTransition(par, CDD.TRUE, new String[]{arClock});
-        par.addTransition(ps, CDD.TRUE, new String[]{});
+        CDD consDl = RangeDecision.create(arClock, RangeDecision.OP_LTEQ, c1);
+        CDD consDr = RangeDecision.create(sClock, RangeDecision.OP_GTEQ, c2);
+        Phase par = new Phase(id + "_st_" + ar, CDD.TRUE, consDl);
+        Phase prs = new Phase(id + "_st2", S, CDD.TRUE);
+        pr.addSimpleTran(par);
+        par.addTransition(prs, consDl, new String[]{sClock});
+
+        pr.addTransition(pr, rDr, new String[]{});
+        par.addTransition(par, consDl, new String[]{});
+        prs.addSelfTrans();
+        p_true.addSelfTrans();
+        prs.addTransition(p_true, consDr, new String[]{});
 
         String peaName = mReq.getId() + "-" + mReq.getName();
-        PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, par, ps}, new Phase[]{pr},
+        PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, par, prs}, new Phase[]{pr},
                 List.of(arClock, sClock));
-        pea.addOut(ps, constraintDr);
+        pea.addOut(prs, consDr);
 
-        pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), CDD.TRUE, constraintDl, constraintDr));
+        pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), CDD.TRUE, consDl, consDr));
         return pea;
     }
 }

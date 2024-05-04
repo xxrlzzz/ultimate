@@ -24,7 +24,7 @@ public class PeaImplBuilder {
         CONSTRUCTORS.put(EdgeResponseBoundL2Pattern.class, EdgeResponseBoundL2PeaImpl.class);
     }
 
-    public static IPeaImpl<?> build(PatternType<?> pattern) {
+    public IPeaImpl<?> build(PatternType<?> pattern) {
         Class<? extends IPeaImpl<?>> clazz = CONSTRUCTORS.get(pattern.getClass());
         if (clazz == null) {
             throw new IllegalArgumentException("not impl yet for pattern " + pattern.getClass());

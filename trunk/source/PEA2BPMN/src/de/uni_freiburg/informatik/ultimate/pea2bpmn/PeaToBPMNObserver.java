@@ -18,8 +18,6 @@ import de.uni_freiburg.informatik.ultimate.lib.srparse.pattern.PatternType;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.pea_impl.PeaImplBuilder;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.preferences.Pea2BPMNPreferences;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
-import main.kotlin.bpmn.BPMNModel;
-import main.kotlin.bpmn.element.ProcessElement;
 
 public class PeaToBPMNObserver extends BaseObserver {
 
@@ -60,7 +58,6 @@ public class PeaToBPMNObserver extends BaseObserver {
 		String filename = mServices.getPreferenceProvider(Activator.PLUGIN_ID)
 				.getString(Pea2BPMNPreferences.FILE_NAME_LABEL);
 		final PrintWriter writer = openTempFile(path, filename);
-		final PrintWriter bpmnWriter = openTempFile(path, "test.bpmn");
 		if (writer == null) {
 			mLogger.info("req 2 BPMN end 1");
 			return false;
@@ -74,7 +71,7 @@ public class PeaToBPMNObserver extends BaseObserver {
 		for (PatternType<?> pattern : rawPatterns) {
 			mLogger.info("pattern: " + pattern + "\t" + pattern.getClass());
 			try {
-				PEAFragment pea = PeaImplBuilder.build(pattern).generate();
+				PEAFragment pea = new PeaImplBuilder().build(pattern).generate();
 				if (pea == null) {
 					mLogger.warn("empty pea?");
 					continue;
@@ -92,8 +89,6 @@ public class PeaToBPMNObserver extends BaseObserver {
 		}
 		writer.close();
 
-		writeBpmn(bpmnWriter);
-
 		mLogger.info("req 2 BPMN end 2 " + rawPatterns.size() + "\t" + peas.size());
 		return false;
 	}
@@ -102,14 +97,6 @@ public class PeaToBPMNObserver extends BaseObserver {
 		return mInput;
 //		return mBoogieAST;
 	}
-
-	private void writeBpmn(PrintWriter writer) {
-		BPMNModel model = new BPMNModel();
-		ProcessElement process = new ProcessElement("1", "1");
-		model.getProcesses().add(process);
-	}
-
-
 
 	private PrintWriter openTempFile(final String path, final String filename) {
 //		String path;

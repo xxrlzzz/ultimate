@@ -11,30 +11,32 @@ import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.ReqDesc;
 import java.util.Collections;
 import java.util.List;
 
-public class DurationBoundLPeaImpl implements IPeaImpl<DurationBoundLPattern> {
-    private final DurationBoundLPattern mReq;
-
+public class DurationBoundLPeaImpl extends AbsPeaImpl<DurationBoundLPattern> {
     public DurationBoundLPeaImpl(PatternType<?> req) {
-        mReq = (DurationBoundLPattern)req;
+        super(req);
+        final CDD R = mReq.getCdds().get(0);
+        mClocks.add(R + "c");
     }
 
     @Override
     public PEAFragment generate() {
         final SrParseScope<?> scope = mReq.getScope();
         final CDD R = mReq.getCdds().get(0);
-        final String id = mReq.getId();
         final int c1 = SmtUtils.toInt(mReq.getDurations().get(0)).intValueExact();
 
-        String rClock = R + "t";
-        CDD constraintDr = RangeDecision.create(rClock, RangeDecision.OP_GTEQ, c1);
-        Phase pr = new Phase(id + "_st1", R, constraintDr);
-
+        String rClock = mClocks.get(0);
+        CDD consDr = RangeDecision.create(rClock, RangeDecision.OP_GTEQ, c1);
+        Phase pr = new Phase(id + "_st1", R, consDr);
+        Phase p_true = new Phase(id + "_st2", CDD.TRUE);
+        pr.addSelfTrans();
+        pr.addTransition(p_true, consDr, new String[]{});
+        p_true.addSelfTrans();
         String peaName = id + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr}, new Phase[]{pr},
                 Collections.singletonList(rClock));
-        pea.addOut(pr, constraintDr);
+        pea.addOut(pr, consDr);
 
-        pea.setDesc(new ReqDesc(mReq, List.of(), List.of(R), CDD.TRUE, CDD.TRUE, constraintDr));
+        pea.setDesc(new ReqDesc(mReq, List.of(), List.of(R), CDD.TRUE, CDD.TRUE, consDr));
         return pea;
     }
 }

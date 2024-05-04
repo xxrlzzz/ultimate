@@ -58,6 +58,11 @@ public class ConstraintMerge extends IPeaMerger {
         if (upgradeDiff != 0) {
             // can be after cond or cond.
             Phase mPreConsPhase, oPreConsPhase;
+            if (mConsPhase.getClockInvariant().isEqual(CDD.TRUE)) {
+                // 我没有constraint
+                // TODO 为我加上 constraint delay
+                return null;
+            }
             String clock = mConsPhase.getClockInvariant().getDecision().getVar();
             mPreConsPhase = Objects.requireNonNullElse(mAfterCondPhase, mConditionPhase);
             oPreConsPhase = Objects.requireNonNullElse(oAfterCondPhase, oConditionPhase);
@@ -75,6 +80,6 @@ public class ConstraintMerge extends IPeaMerger {
 
         phases.remove(oConsPhase);
 
-        return makeFragment(left.getName() + "-" + right.getName());
+        return makeFragment(left, right);
     }
 }

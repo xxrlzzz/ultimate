@@ -25,6 +25,6 @@ public class SequenceMerge extends IPeaMerger {
 
         phases.remove(oConditionPhase);
         inits.remove(oConditionPhase);
-        return makeFragment(left.getName() + "-" + right.getName());
+        return makeFragment(left, right);
     }
 }

@@ -2,6 +2,7 @@ package de.uni_freiburg.informatik.ultimate.pea2bpmn.pea_merge;
 
 import de.uni_freiburg.informatik.ultimate.lib.pea.Phase;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
+import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.ReqDesc;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -36,8 +37,22 @@ public abstract class IPeaMerger {
         oConsPhase = findOPhases[2];
     }
 
-    PEAFragment makeFragment(String name) {
-        return new PEAFragment(name, phases.toArray(new Phase[]{}),
+    PEAFragment makeFragment(PEAFragment left, PEAFragment right) {
+        PEAFragment merged = new PEAFragment(left + "-" + right, phases.toArray(new Phase[]{}),
                 inits.toArray(new Phase[]{}), new ArrayList<>(clocks));
+
+        merged.addMergedDesc(left.getDesc());
+        merged.addMergedDesc(right.getDesc());
+        if (left.getMergedDesc() != null) {
+            for (ReqDesc desc : left.getMergedDesc()) {
+                merged.addMergedDesc(desc);
+            }
+        }
+        if (right.getMergedDesc() != null) {
+            for (ReqDesc desc : right.getMergedDesc()) {
+                merged.addMergedDesc(desc);
+            }
+        }
+        return merged;
     }
 }

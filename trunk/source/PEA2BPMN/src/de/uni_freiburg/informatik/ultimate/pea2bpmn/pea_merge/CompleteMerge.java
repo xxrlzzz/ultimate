@@ -71,6 +71,6 @@ public class CompleteMerge extends IPeaMerger {
         phases.remove(oConsPhase);
         inits.remove(oConditionPhase);
 
-        return makeFragment(left.getName() + "-" + right.getName());
+        return makeFragment(left, right);
     }
 }

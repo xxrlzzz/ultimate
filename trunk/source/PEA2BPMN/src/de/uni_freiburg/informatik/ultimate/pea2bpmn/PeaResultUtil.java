@@ -29,7 +29,6 @@ package de.uni_freiburg.informatik.ultimate.pea2bpmn;
 import java.util.HashSet;
 import java.util.Set;
 
-import de.uni_freiburg.informatik.ultimate.pea2bpmn.results.ReqCheckSuccessResult;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.Expression;
 import de.uni_freiburg.informatik.ultimate.boogie.output.BoogiePrettyPrinter;
 import de.uni_freiburg.informatik.ultimate.core.lib.results.SyntaxErrorResult;
@@ -40,10 +39,6 @@ import de.uni_freiburg.informatik.ultimate.core.model.services.IBacktranslationS
 import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
 import de.uni_freiburg.informatik.ultimate.core.model.services.IUltimateServiceProvider;
 import de.uni_freiburg.informatik.ultimate.lib.srparse.pattern.PatternType;
-import de.uni_freiburg.informatik.ultimate.pea2bpmn.generator.RtInconcistencyConditionGenerator.InvariantInfeasibleException;
-import de.uni_freiburg.informatik.ultimate.pea2bpmn.results.RequirementInconsistentErrorResult;
-import de.uni_freiburg.informatik.ultimate.pea2bpmn.results.RequirementTransformationErrorResult;
-import de.uni_freiburg.informatik.ultimate.pea2bpmn.results.RequirementTypeErrorResult;
 
 /**
  * Utility class that helps with reporting results.
@@ -69,40 +64,8 @@ public class PeaResultUtil {
 		return mIsAborted;
 	}
 
-	public void transformationError(final PatternType<?> req, final String reason) {
-		assert req != null;
-		final IResult result = new RequirementTransformationErrorResult(req.getId(), reason);
-		mLogger.warn(result.getLongDescription());
-		report(result);
-	}
-
 	public void syntaxError(final ILocation location, final String description) {
 		errorAndAbort(location, description, new SyntaxErrorResult(Activator.PLUGIN_ID, location, description));
-	}
-
-	public void typeError(final PatternType<?> req, final String description) {
-		typeError(req.getId(), description);
-	}
-
-	public void typeError(final String reqId, final String description) {
-		errorAndAbort(new RequirementTypeErrorResult(reqId, description));
-	}
-
-	public void typeError(final String description, final Expression expr) {
-		if (mExprWithTypeErrors.add(expr.toString())) {
-			errorAndAbort(new RequirementTypeErrorResult(expr.getLoc().getStartLine(),
-					BoogiePrettyPrinter.print(expr) + " :" + description));
-		}
-	}
-
-	public void intrinsicRtConsistencySuccess(final IElement element) {
-		final String plugin = Activator.PLUGIN_ID;
-		final IBacktranslationService translatorSequence = mServices.getBacktranslationService();
-		report(new ReqCheckSuccessResult<>(element, plugin, translatorSequence));
-	}
-
-	public void infeasibleInvariant(final InvariantInfeasibleException ex) {
-		errorAndAbort(new RequirementInconsistentErrorResult(ex));
 	}
 
 	private void errorAndAbort(final IResult result) {
