@@ -8,17 +8,18 @@ import de.uni_freiburg.informatik.ultimate.lib.smtlibutils.SmtUtils;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.ReqDesc;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ResponseDelayBoundL1PeaImpl extends AbsPeaImpl<ResponseDelayBoundL1Pattern> {
     public ResponseDelayBoundL1PeaImpl(PatternType<?> req) {
         super(req);
         final CDD R = mReq.getCdds().get(1);
 
-        String ar = "After_" + R + "c";
-        mClocks.add(R + "c");
+        String ar = "After_" + R.toUppaalString() + "c";
+        mClocks.add(R.toUppaalString() + "c");
         mClocks.add(ar);
     }
 
@@ -49,12 +50,12 @@ public class ResponseDelayBoundL1PeaImpl extends AbsPeaImpl<ResponseDelayBoundL1
         Phase par2 = new Phase(id + "_st_" + ar + "2", R.negate().and(S.negate()), consDl);
         pr.addTransition(par, condDr, new String[]{arClock});
         pr.addTransition(par2, condDr, new String[]{arClock});
-        par.addSimpleTran(ps);
-        par.addSimpleTran(prs);
-        par.addSimpleTran(par2);
-        par2.addSimpleTran(par);
-        par2.addSimpleTran(ps);
-        prs.addSimpleTran(ps);
+        par.addTransition(ps);
+        par.addTransition(prs);
+        par.addTransition(par2);
+        par2.addTransition(par);
+        par2.addTransition(ps);
+        prs.addTransition(ps);
 
         pr.addTransition(pr, condDr.negate(), new String[]{});
         ps.addSelfTrans();
@@ -62,14 +63,19 @@ public class ResponseDelayBoundL1PeaImpl extends AbsPeaImpl<ResponseDelayBoundL1
         par.addTransition(par, consDl, new String[]{});
         par2.addTransition(par2, consDl, new String[]{});
         p_true.addSelfTrans();
-        ps.addSimpleTran(p_true);
-        prs.addSimpleTran(p_true);
+        ps.addTransition(p_true);
+        prs.addTransition(p_true);
 
         String peaName = id + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, par, par2, prs, ps, p_true}, new Phase[]{pr},
                 List.of(arClock, rClock));
-        pea.addOut(ps, CDD.TRUE);
-        pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), condDr, consDl, CDD.TRUE));
+//        pea.addOut(ps, CDD.TRUE);
+        pea.setDestPhase(p_true);
+        pea.setEntryReset(rClock);
+
+        Set<Phase> phase = new HashSet<>();
+        Collections.addAll(phase, pea.getPhases());
+        pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), condDr, consDl, CDD.TRUE, phase));
         return pea;
     }
 }

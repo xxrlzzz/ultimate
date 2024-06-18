@@ -175,7 +175,7 @@ public class Req2BoogieTranslator {
 
 	}
 
-	private IReq2Pea createReq2Pea(final List<IReq2PeaTransformer> req2peaTransformers,
+	public IReq2Pea createReq2Pea(final List<IReq2PeaTransformer> req2peaTransformers,
 			final List<DeclarationPattern> init, final List<PatternType<?>> requirements) {
 		IReq2Pea req2pea = new Req2Pea(mServices, mLogger, init, requirements);
 		for (final IReq2PeaTransformer transformer : req2peaTransformers) {

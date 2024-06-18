@@ -407,10 +407,10 @@
 					<commitIdGenerationMode>flat</commitIdGenerationMode>
 					<gitDescribe>
 						<skip>false</skip>
-						<!-- when the build is triggered while the repo is in "dirty state", 
+						<!-- when the build is triggered while the repo is in "dirty state",
 							append this suffix -->
 						<dirty>-m</dirty>
-						<!-- Only consider tags matching the given pattern. This can be used 
+						<!-- Only consider tags matching the given pattern. This can be used
 							to avoid leaking private tags from the repository. -->
 						<match>*</match>
 						<tags>true</tags>
@@ -528,7 +528,7 @@
 		<module>../Library-UltimateUtil</module>
 <!--		<module>../LTL2aut</module>-->
 <!--		<module>../PeaExampleGenerator</module>-->
-<!--		<module>../PEAtoBoogie</module>-->
+		<module>../PEAtoBoogie</module>
 <!--		<module>../RCFGBuilder</module>-->
 <!--		<module>../ReachingDefinitions</module>-->
 <!--		<module>../Referee</module>-->
@@ -543,7 +543,7 @@
 		<module>../UltimateDeltaDebugger</module>
 		<module>../UltimateEliminatorController</module>
 		<module>../PEA2BPMN</module>
-		<module>../Library-BPMN</module>
+<!--		<module>../Library-BPMN</module>-->
 		<module>../PEA2BPMNTest</module>
 		<!--
 		  We include test modules here in order to make sure they build successfully.

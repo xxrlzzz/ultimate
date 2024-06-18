@@ -65,6 +65,7 @@ SETTINGS=../../trunk/examples/settings/default/${LCTOOLNAME}/*${TOOLNAME}*
 
 # check toolchain argument
 if [ ! -z "$3" -a ! "NONE" = "$3" ]; then
+  echo "TOOLCHAIN ${3}"
 	TOOLCHAIN=../../trunk/examples/toolchains/${3}
 else
 	echo "No reach toolchain specified, ommitting..."
@@ -72,11 +73,21 @@ else
 fi
 
 if [ ! -z "$4" -a ! "NONE" = "$4" ]; then
+  echo "TESTTOOLCHAIN ${4}"
 	TESTTOOLCHAIN=../../trunk/examples/toolchains/${4}
 else
 	echo "No test toolchain specified, ommitting..."
 	TESTTOOLCHAIN=
 fi
+
+if [ ! -z "$5" -a ! "NONE" = "$5" ]; then
+  echo "PEAGENTOOLCHAIN ${5}"
+	PEAGENTOOLCHAIN=../../trunk/examples/toolchains/${5}
+else
+	echo "No test toolchain specified, ommitting..."
+	PEAGENTOOLCHAIN=
+fi
+
 
 ## removing files and dirs from previous deployments
 if [ -d "$TARGETDIR" ]; then
@@ -98,6 +109,7 @@ mkdir "$DATADIR"
 exit_on_fail cp -a ../../trunk/source/BA_SiteRepository/target/${ARCHPATH}/* "$TARGETDIR"/
 copy_if_non_empty "$TOOLCHAIN" "$CONFIGDIR"/ReqCheck.xml
 copy_if_non_empty "$TESTTOOLCHAIN" "$CONFIGDIR"/ReqToTest.xml
+copy_if_non_empty "$PEAGENTOOLCHAIN" "$CONFIGDIR"/PEAGen.xml
 exit_on_fail cp ${SETTINGS} "$CONFIGDIR"/.
 
 ## copy all adds to target dir

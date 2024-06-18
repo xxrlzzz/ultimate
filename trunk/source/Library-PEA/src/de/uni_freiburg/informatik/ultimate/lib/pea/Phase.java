@@ -42,6 +42,7 @@ public class Phase implements Comparable<Phase> {
 	Set<String> stoppedClocks;
 	List<Transition> transitions;
 	public int ID;
+	Map<CDD, Boolean> phantoms;
 
 	/**
 	 * The phase bits used by the powerset construction. This is only set for automata built from CounterExample traces.
@@ -60,6 +61,7 @@ public class Phase implements Comparable<Phase> {
 		isEntry = false;
 		isExit = false;
 		incomming = new Vector<>();
+		phantoms = new HashMap<>();
 	}
 
 	public Phase(final String name, final CDD stateInv, final CDD clockInv) {
@@ -88,6 +90,15 @@ public class Phase implements Comparable<Phase> {
 
 	public CDD getStateInvariant() {
 		return stateInv;
+	}
+
+	public CDD getStateInvNoPhantom() {
+		CDD baseStateInv = stateInv;
+		for (CDD cdd : phantoms.keySet()) {
+			String opName = phantoms.get(cdd) ? "pc" : "p";
+			baseStateInv = baseStateInv.assume(cdd.operator(opName));
+		}
+		return baseStateInv;
 	}
 
 	public void setStateInvariant(final CDD inv) {
@@ -127,12 +138,57 @@ public class Phase implements Comparable<Phase> {
 		return result;
 	}
 
+	// 处理有多个相同目的边
+	public List<Transition> getOutgoingTransitions(final Phase dest) {
+		ArrayList<Transition> result = new ArrayList<>();
+
+		for (final Transition transition : transitions) {
+			if (transition.getDest().equals(dest)) {
+				result.add(transition);
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * 合并到同一位置的变迁
+	 * @param dest
+	 * @param or
+	 */
+	public void mergeTrans(final Phase dest, boolean or) {
+		List<Transition> destTrans = getOutgoingTransitions(dest);
+		if (destTrans.size() > 1) {
+			CDD tranGuard = CDD.TRUE;
+			for (Transition tran : destTrans) {
+				removeTransition(tran);
+				if (or) {
+					tranGuard = tranGuard.or(tran.getGuard());
+				} else {
+					tranGuard = tranGuard.and(tran.getGuard());
+				}
+			}
+			addTransition(dest, tranGuard);
+		}
+	}
+
 	public void updateOutgoingTransition(final Phase dest, Transition newT) {
 		for (int i = 0; i < transitions.size(); i++) {
 			if (transitions.get(i).getDest().equals(dest)) {
 				transitions.set(i, newT);
 			}
 		}
+	}
+	public Transition addSelfTrans() {
+		return addTransition(this);
+	}
+
+	public Transition addTransition(final Phase dest) {
+		return addTransition(dest, CDD.TRUE, new String[]{});
+	}
+
+	public Transition addTransition(final Phase dest, final CDD guard) {
+		return addTransition(dest, guard, new String[]{});
 	}
 
 	/** @return the transition added or modified */
@@ -155,8 +211,104 @@ public class Phase implements Comparable<Phase> {
 		return t;
 	}
 
+	public Transition copyTran(Phase dest, Transition old) {
+		Transition nt = addTransition(dest, old.getGuard(), old.getResets());
+		// 先不考虑 clock writer 冲突的情况
+		old.getClockWriter().forEach(nt::putClockWriter);
+		nt.isParallel = old.isParallel;
+		nt.isEventual = old.isEventual;
+		nt.isError = old.isError;
+		return nt;
+	}
+
 	public void removeTransition(Transition t) {
 		transitions.remove(t);
+	}
+
+	public boolean containsPhantom(CDD p) {
+		return phantoms.containsKey(p);
+	}
+
+	public void addPhantom(CDD p, boolean isC) {
+		phantoms.put(p, isC);
+	}
+
+	public boolean hasPhantom() {
+		return !phantoms.isEmpty();
+	}
+
+//	public Map<CDD, Boolean> getPhantoms() {
+//		return phantoms;
+//	}
+
+	public void migratePhantom(Phase oth) {
+		CDD st = oth.getStateInvariant();
+		for (CDD p : phantoms.keySet()) {
+			boolean c = phantoms.get(p);
+			oth.addPhantom(p, c);
+			st = st.andPhantom(p, c);
+		}
+		oth.setStateInvariant(st);
+//		return oth;
+	}
+
+	public List<Phase> dePhantom() {
+		List<Phase> phases = new ArrayList<>();
+		if (phantoms.isEmpty()) {
+			phases.add(this);
+			return phases;
+		}
+		CDD baseStateInv = stateInv;
+		CDD negPhantom = CDD.TRUE;
+		List<CDD> stateInvs = new ArrayList<>();
+		List<CDD> tmpStateInvs = new ArrayList<>();
+
+		Transition selfTr = getOutgoingTransition(this);
+
+		for (CDD cdd : phantoms.keySet()) {
+			String opName = phantoms.get(cdd) ? "pc" : "p";
+			baseStateInv = baseStateInv.assume(cdd.operator(opName));
+		}
+//		System.out.println(stateInv);
+//		System.out.println(baseStateInv);
+		stateInvs.add(baseStateInv);
+		for (CDD cdd : phantoms.keySet()) {
+			tmpStateInvs.clear();
+			tmpStateInvs.addAll(stateInvs);
+			for (CDD cInv : tmpStateInvs) {
+				if (!cInv.isEqual(baseStateInv)) {
+					stateInvs.add(cInv);
+				}
+				stateInvs.add(cInv.and(cdd));
+			}
+			negPhantom = negPhantom.and(cdd.negate());
+		}
+		// 先不考虑cycle
+		Phase originPhase = null;
+		for (int i = 0; i < stateInvs.size(); i++) {
+			Phase phase = new Phase(this.name+"_"+i, stateInvs.get(i), this.clockInv, this.stoppedClocks);
+			phase.isInit = this.isInit;
+			for (Transition transition : transitions) {
+				if (transition.getDest() == this) {
+					continue;
+				}
+				Transition nt = phase.addTransition(transition.getDest(), transition.getGuard(), transition.getResets());
+				nt.isParallel = transition.isParallel;
+				nt.isEventual = transition.isEventual;
+			}
+			if (i>0) {
+				phase.addTransition(originPhase);
+			} else {
+				originPhase = phase;
+			}
+			// 自循环
+			phase.addTransition(phase, selfTr.getGuard(), selfTr.getResets());
+			phases.add(phase);
+		}
+		if (originPhase.getStateInvariant().isEqual(CDD.TRUE)) {
+			originPhase.setStateInvariant(negPhantom);
+		}
+		return phases;
 	}
 
 	@Override

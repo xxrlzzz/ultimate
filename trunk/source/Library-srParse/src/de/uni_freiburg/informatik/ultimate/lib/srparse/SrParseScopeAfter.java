@@ -17,4 +17,9 @@ public class SrParseScopeAfter extends SrParseScope<SrParseScopeAfter> {
 	public String toString() {
 		return "After \"" + getCdd1().toBoogieString() + "\", ";
 	}
+
+	@Override
+	public ScopeType type() {
+		return ScopeType.After;
+	}
 }

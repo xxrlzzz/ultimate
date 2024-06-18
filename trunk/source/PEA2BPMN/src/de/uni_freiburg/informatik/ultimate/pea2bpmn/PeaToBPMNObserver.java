@@ -1,12 +1,9 @@
 package de.uni_freiburg.informatik.ultimate.pea2bpmn;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
+import com.alibaba.fastjson2.JSON;
 import de.uni_freiburg.informatik.ultimate.core.lib.models.ObjectContainer;
 import de.uni_freiburg.informatik.ultimate.core.lib.observers.BaseObserver;
 import de.uni_freiburg.informatik.ultimate.core.model.models.IElement;
@@ -16,6 +13,8 @@ import de.uni_freiburg.informatik.ultimate.lib.pea.PhaseEventAutomata;
 import de.uni_freiburg.informatik.ultimate.lib.pea.modelchecking.DotWriterNew;
 import de.uni_freiburg.informatik.ultimate.lib.srparse.pattern.PatternType;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.pea_impl.PeaImplBuilder;
+import de.uni_freiburg.informatik.ultimate.pea2bpmn.pea_merge.MergeDesc;
+import de.uni_freiburg.informatik.ultimate.pea2bpmn.pea_merge.PairMergerUtils;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.preferences.Pea2BPMNPreferences;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
 
@@ -39,27 +38,30 @@ public class PeaToBPMNObserver extends BaseObserver {
 
 	@Override
 	public boolean process(final IElement root) throws Throwable {
+
+		mLogger.info("req 0 BPMN start");
 		if (!(root instanceof ObjectContainer)) {
 			return false;
 		}
 		mInput = root;
 		@SuppressWarnings("unchecked")
 		final List<PatternType<?>> rawPatterns = (List<PatternType<?>>) ((ObjectContainer<?>) root).getValue();
-//
-//		if (!mServices.getProgressMonitorService().continueProcessing()) {
-//			return false;
-//		}
+		if (!mServices.getProgressMonitorService().continueProcessing()) {
+			return false;
+		}
 //		mBoogieAST = generateBoogie(rawPatterns);
 
-		mLogger.info("req 2 BPMN start");
+//		mLogger.info("req 2 BPMN start");
 
 		String path = mServices.getPreferenceProvider(Activator.PLUGIN_ID)
 				.getString(Pea2BPMNPreferences.DUMP_PATH_LABEL);
 		String filename = mServices.getPreferenceProvider(Activator.PLUGIN_ID)
 				.getString(Pea2BPMNPreferences.FILE_NAME_LABEL);
+		String mergeDescFile = mServices.getPreferenceProvider(Activator.PLUGIN_ID)
+				.getString(Pea2BPMNPreferences.MERGE_FILE_LABEL);
 		final PrintWriter writer = openTempFile(path, filename);
 		if (writer == null) {
-			mLogger.info("req 2 BPMN end 1");
+			mLogger.info("req 2 BPMN end, no writer");
 			return false;
 //			final BoogieOutput output = new BoogieOutput(writer);
 //			output.printBoogieProgram(unit);
@@ -68,6 +70,8 @@ public class PeaToBPMNObserver extends BaseObserver {
 		}
 
 		ArrayList<PhaseEventAutomata> peas = new ArrayList<>();
+		HashMap<String, PEAFragment> id_pea_map = new HashMap<String, PEAFragment>();
+
 		for (PatternType<?> pattern : rawPatterns) {
 			mLogger.info("pattern: " + pattern + "\t" + pattern.getClass());
 			try {
@@ -77,6 +81,7 @@ public class PeaToBPMNObserver extends BaseObserver {
 					continue;
 				}
 				peas.add(pea);
+				id_pea_map.put(pea.getDesc().getReq().getId(), pea);
 			} catch (Exception e) {
 				mLogger.warn(e.getMessage());
 			}
@@ -87,9 +92,25 @@ public class PeaToBPMNObserver extends BaseObserver {
 			String dot = DotWriterNew.createDotString(pea);
 			writer.println(dot);
 		}
+
+		writer.println("");
+		File mergeFile = new File(path + File.separatorChar + mergeDescFile);
+		if (mergeFile.exists()) {
+			BufferedReader bf = new BufferedReader(new FileReader((mergeFile)));
+			StringBuilder fileContent = new StringBuilder();
+			String line;
+			while ((line = bf.readLine()) != null) {
+				fileContent.append(line);
+			}
+			List<MergeDesc> descs = JSON.parseArray(fileContent.toString(), MergeDesc.class);
+
+			PEAFragment result = PairMergerUtils.mergeMain(id_pea_map, descs);
+			String dot4 = DotWriterNew.createDotString(result);
+			writer.println(dot4);
+		}
 		writer.close();
 
-		mLogger.info("req 2 BPMN end 2 " + rawPatterns.size() + "\t" + peas.size());
+		mLogger.info("req 2 BPMN exit," + rawPatterns.size() + "\t" + peas.size());
 		return false;
 	}
 

@@ -8,8 +8,7 @@ import de.uni_freiburg.informatik.ultimate.lib.smtlibutils.SmtUtils;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.ReqDesc;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class TriggerResponseDelayBoundL1PeaImpl extends AbsPeaImpl<TriggerResponseDelayBoundL1Pattern> {
     public TriggerResponseDelayBoundL1PeaImpl(PatternType<?> req) {
@@ -81,10 +80,10 @@ public class TriggerResponseDelayBoundL1PeaImpl extends AbsPeaImpl<TriggerRespon
         String peaName = mReq.getId() + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, prs, paf_rs, paf_r, paf_s, pt, p_true},
                 new Phase[]{pr, prs}, List.of(rClock, af_rsClock));
-        pea.addOut(pr, rtLess.or(S.negate()));
-        pea.addOut(prs, rtLess.or(S.negate()));
-        pea.addOut(pt, CDD.TRUE);
-        pea.setDesc(new ReqDesc(mReq, List.of(R, S), List.of(T), rtLess, consDl, CDD.TRUE));
+        pea.setDestPhase(p_true);
+        Set<Phase> phase = new HashSet<>();
+        Collections.addAll(phase, pea.getPhases());
+        pea.setDesc(new ReqDesc(mReq, List.of(R, S), List.of(T), rtLess, consDl, CDD.TRUE, phase));
         return pea;
     }
 }

@@ -67,7 +67,7 @@ public class ResponseDelayPattern extends PatternType<ResponseDelayPattern> {
 
 		final CounterTrace ct;
 		if (scope instanceof SrParseScopeGlobally) {
-			ct = counterTrace(phaseT(), phase(R.and(S.negate())), phase(S.negate(), BoundTypes.GREATER, c1), phaseT());
+			ct = counterTrace(phaseT(), phase(R.and(S.negate())), phase(S.negate(), BoundTypes.GREATEREQUAL, c1), phaseT());
 		} else if (scope instanceof SrParseScopeBefore) {
 			final CDD P = scope.getCdd1();
 			ct = counterTrace(phase(P.negate()), phase(P.negate().and(R).and(S.negate())),

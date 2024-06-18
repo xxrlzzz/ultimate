@@ -22,4 +22,6 @@ Require-Bundle: com.github.jhoenicke.javacup,
  de.uni_freiburg.informatik.ultimate.lib.automata,
  de.uni_freiburg.informatik.ultimate.lib.ultimatemodel
 Export-Package: de.uni_freiburg.informatik.ultimate.pea2bpmn
+Bundle-ClassPath: com.alibaba.fastjson2-2.0.49.jar,
+    .
 Automatic-Module-Name: de.uni.freiburg.informatik.ultimate.pea2bpmn

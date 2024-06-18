@@ -1,6 +1,7 @@
 package de.uni_freiburg.informatik.ultimate.lib.pea.modelchecking;
 
 import java.util.Formatter;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import de.uni_freiburg.informatik.ultimate.lib.pea.Phase;
@@ -50,16 +51,23 @@ public class DotWriterNew {
 				final String dst = transition.getDest().getName();
 				final String guard = transition.getGuard().toUppaalString();
 
-				String resets = "";
+				StringBuilder resets = new StringBuilder();
 				for (final String reset : transition.getResets()) {
-					resets += "<br/>" + reset + " :=0";
+					resets.append("<br/>").append(reset).append(" :=0");
+				}
+				HashMap<String, Integer> clockWriter = transition.getClockWriter();
+				for (final String clk : clockWriter.keySet()) {
+					resets.append("<br/>").append(clk).append(" :=").append(clockWriter.get(clock));
 				}
 				String optionProps = "";
 				if (transition.isParallel) {
-					optionProps += "style=dashed, color=red";
+					optionProps += ",arrowhead=diamond";
+				}
+				if (transition.isEventual) {
+					optionProps += ",style=dashed";
 				}
 
-				fmt.format("\t%s -> %s [label=<<font COLOR=\"#377eb8\">%s</font>%s>%s];%s", src, dst, guard, resets,
+				fmt.format("\t%s -> %s [label=<<font COLOR=\"#377eb8\">%s</font>%s>%s];%s", src, dst, guard, resets.toString(),
 						optionProps, LINE_SEP);
 			}
 			fmt.format("%s", LINE_SEP);

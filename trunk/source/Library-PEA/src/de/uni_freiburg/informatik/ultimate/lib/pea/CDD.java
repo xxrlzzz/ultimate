@@ -692,6 +692,26 @@ public final class CDD {
 		return CDD.create(newDecision, newChildren);
 	}
 
+	public CDD operator(final String opName) {
+		if (mDecision instanceof BooleanDecision) {
+			Decision nD = ((BooleanDecision)mDecision).operator(opName);
+			return CDD.create(nD, mChilds);
+		}
+		throw new RuntimeException("unsupported add op for CDD other than boolean decision.");
+	}
+
+	public CDD andPhantom(final CDD p, boolean c) {
+		if (this.implies(p)) {
+			return this;
+		}
+		String opName = c ? "pc" : "p";
+		return this.and(p.operator(opName));
+	}
+
+	public static boolean implEq(CDD a, CDD b) {
+		return a.implies(b) || b.implies(a);
+	}
+
 	/**
 	 * Creates a string representation of the CDD.
 	 */

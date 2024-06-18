@@ -17,4 +17,9 @@ public class SrParseScopeAfterUntil extends SrParseScope<SrParseScopeAfterUntil>
 	public String toString() {
 		return "After \"" + getCdd1().toBoogieString() + "\" until \"" + getCdd2().toBoogieString() + "\", ";
 	}
+
+	@Override
+	public ScopeType type() {
+		return ScopeType.AfterUntil;
+	}
 }

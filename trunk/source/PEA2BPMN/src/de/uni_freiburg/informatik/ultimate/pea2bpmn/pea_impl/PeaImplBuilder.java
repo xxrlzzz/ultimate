@@ -9,6 +9,8 @@ public class PeaImplBuilder {
     private static final Map<Class<? extends PatternType<?>>, Class<? extends IPeaImpl<?>>> CONSTRUCTORS = new HashMap<>();
 
     static {
+        CONSTRUCTORS.put(ResponsePattern.class, ResponsePeaImpl.class);
+
         CONSTRUCTORS.put(DurationBoundLPattern.class, DurationBoundLPeaImpl.class);
         CONSTRUCTORS.put(DurationBoundUPattern.class, DurationBoundUPeaImpl.class);
         CONSTRUCTORS.put(ResponseBoundL1Pattern.class, ResponseBoundL1PeaImpl.class);
@@ -22,6 +24,10 @@ public class PeaImplBuilder {
         CONSTRUCTORS.put(EdgeResponseDelayPattern.class, ResponseDelayPeaImpl.class);
         CONSTRUCTORS.put(EdgeResponseDelayBoundL2Pattern.class, ResponseDelayBoundL2PeaImpl.class);
         CONSTRUCTORS.put(EdgeResponseBoundL2Pattern.class, EdgeResponseBoundL2PeaImpl.class);
+
+        CONSTRUCTORS.put(UniversalityPattern.class, InitializationPeaImpl.class);
+        CONSTRUCTORS.put(InitializationPattern.class, InitializationPeaImpl.class);
+        CONSTRUCTORS.put(UniversalityDelayPattern.class, UniversityDelayPeaImpl.class);
     }
 
     public IPeaImpl<?> build(PatternType<?> pattern) {

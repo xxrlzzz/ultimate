@@ -130,6 +130,10 @@ public class BooleanDecision extends Decision<BooleanDecision> {
 		return (new BooleanDecision(result));
 	}
 
+	public BooleanDecision operator(final String opName) {
+		return new BooleanDecision(opName + "(" + mVar + ")");
+	}
+
 	@Override
 	public int compareToSimilar(final Decision<?> other) {
 		return mVar.compareTo(((BooleanDecision) other).mVar);

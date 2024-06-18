@@ -17,4 +17,9 @@ public class SrParseScopeGlobally extends SrParseScope<SrParseScopeGlobally> {
 	public String toString() {
 		return "Globally, ";
 	}
+
+	@Override
+	public ScopeType type() {
+		return ScopeType.Globally;
+	}
 }

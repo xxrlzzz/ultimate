@@ -1,10 +1,12 @@
 package de.uni_freiburg.informatik.ultimate.pea2bpmn.req;
 
 import de.uni_freiburg.informatik.ultimate.lib.pea.CDD;
+import de.uni_freiburg.informatik.ultimate.lib.pea.Phase;
 import de.uni_freiburg.informatik.ultimate.lib.pea.RangeDecision;
 import de.uni_freiburg.informatik.ultimate.lib.srparse.pattern.PatternType;
 
 import java.util.List;
+import java.util.Set;
 
 public class ReqDesc {
     private PatternType<?> originReq;
@@ -13,9 +15,15 @@ public class ReqDesc {
     public CDD conditionDuration;
     public CDD constraintDelay;
     public CDD constraintDuration;
+    public Set<Phase> phases;
 
     public ReqDesc(PatternType<?> req, List<CDD> conditions, List<CDD> constraints,
                    CDD conditionDr, CDD constraintDl, CDD constraintDr) {
+        this(req, conditions, constraints, conditionDr, constraintDl, constraintDr, null);
+    }
+
+    public ReqDesc(PatternType<?> req, List<CDD> conditions, List<CDD> constraints,
+                   CDD conditionDr, CDD constraintDl, CDD constraintDr, Set<Phase> phaseSet) {
         originReq = req;
         assert conditions != null && !conditions.isEmpty();
         assert constraints != null && !constraints.isEmpty();
@@ -24,6 +32,7 @@ public class ReqDesc {
         conditionDuration = conditionDr;
         constraintDelay = constraintDl;
         constraintDuration = constraintDr;
+        phases = phaseSet;
     }
 
     public enum ReqOverlapping {
@@ -58,6 +67,40 @@ public class ReqDesc {
 
     public CDD firstConstraint() {
         return constraintVars.get(0);
+    }
+
+    public boolean constraintContain(CDD cons) {
+        if (constraintVars.contains(cons)) {
+            return true;
+        }
+        for (CDD cdd : constraintVars) {
+            if (cdd.implies(cons)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean constraintImply(CDD cons) {
+        for (CDD cdd : constraintVars) {
+            if (cons.implies(cdd)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean conditionContain(CDD cond) {
+        if (conditionVars.contains(cond)) {
+            return true;
+        }
+        for (CDD cdd : conditionVars) {
+            if (cdd.implies(cond)) {
+                return true;
+            }
+        }
+        return false;
+//        return conditionVars.contains(cond);
     }
 
     public ReqOverlapping compare(ReqDesc oth) {
@@ -103,4 +146,5 @@ public class ReqDesc {
     public PatternType<?> getReq() {
         return originReq;
     }
+
 }

@@ -15,11 +15,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class EdgeResponseBoundL2PeaImpl implements IPeaImpl<EdgeResponseBoundL2Pattern> {
-    private final EdgeResponseBoundL2Pattern mReq;
-
+public class EdgeResponseBoundL2PeaImpl extends AbsPeaImpl<EdgeResponseBoundL2Pattern> {
     public EdgeResponseBoundL2PeaImpl(PatternType<?> req) {
-        mReq = (EdgeResponseBoundL2Pattern) req;
+        super(req);
     }
 
     @Override
@@ -40,7 +38,8 @@ public class EdgeResponseBoundL2PeaImpl implements IPeaImpl<EdgeResponseBoundL2P
         pr.addTransition(ps, CDD.TRUE, new String[]{sClock});
         String peaName = id + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, ps}, new Phase[]{pr}, Collections.singletonList(sClock));
-        pea.addOut(ps, constraintDr);
+//        pea.addOut(ps, constraintDr);
+//        pea.setDestPhase(p_true);
         pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), CDD.TRUE, CDD.TRUE, constraintDr));
         return pea;
     }

@@ -198,6 +198,13 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "-gp",
+        "--generate-pea",
+        action="store_true",
+        help="Run generate pea"
+    )
+
+    parser.add_argument(
         "--rt-inconsistency-range",
         type=int,
         default=2,
@@ -243,6 +250,24 @@ def parse_args() -> argparse.Namespace:
     )
 
     config_files.add_argument(
+        "--peagen-toolchain",
+        type=check_file,
+        metavar="<file>",
+        default="config/PEAGen.xml",
+        help="The Ultimate toolchain file (.xml) that will be used during pea generation."
+        "Default: config/PEAGen.xml",
+    )
+
+    config_files.add_argument(
+        "--peagen-settings",
+        type=check_file,
+        metavar="<file>",
+        default="config/ReqCheck-PEA.epf",
+        help="The Ultimate settings file (.epf) that will be used during pea generation."
+        "Default: config/ReqCheck-PEA.epf",
+    )
+
+    config_files.add_argument(
         "--testgen-toolchain",
         type=check_file,
         metavar="<file>",
@@ -270,7 +295,7 @@ def parse_args() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    if not args.analyze_requirements and not args.generate_tests:
+    if not args.analyze_requirements and not args.generate_tests and not args.generate_pea:
         parser.print_help()
         sys.exit(ExitCode.FAIL_NO_ACTION)
 
@@ -764,6 +789,93 @@ def handle_log(args):
     handler.setFormatter(log_formatter)
     logger.addHandler(handler)
 
+def handle_generate_pea(args):
+    logger.info("Running PEA generate")
+
+    os.chdir(args.ultimate_dir)
+    delete_dir_if_necessary(args, args.tmp_dir)
+    dump_folder = os.path.join(args.tmp_dir, "dump", args.req_basename)
+    logger.info(f"Creating dump folder {dump_folder}")
+    pathlib.Path(dump_folder).mkdir(parents=True, exist_ok=True)
+    delete_file_if_necessary(args, args.reqcheck_log)
+
+    logger.info(f"Input Req {args.input}")
+    logger.info(f"Using logfile {args.reqcheck_log}")
+
+    cmd = create_common_ultimate_cli_args(
+        args, args.peagen_toolchain, args.peagen_settings, args.input
+    )
+#     cmd += create_reqchecker_cli_args(args, dump_folder)
+#     cmd += [
+#         "--rcfgbuilder.size.of.a.code.block",
+#         "LoopFreeBlock",
+#         "--pea2boogie.check.rt-inconsistency",
+#         "true",
+#     ]
+
+    ultimate_process = call(cmd)
+
+    relevant_log = []
+    relevant_results = [
+#         "ReqCheckSuccessResult",
+#         "ReqCheckFailResult",
+#         "ReqCheckRtInconsistentResult",
+#         "RequirementInconsistentErrorResult",
+    ]
+
+    progress_bar = None
+
+#     phase1_counter = 0
+#     phase1_total = 0
+#     phase2_counter = 0
+#     phase2_total = 0
+    logger.info(f"Started PEA gen with PID {ultimate_process.pid}")
+    with open(args.reqcheck_log, "w", buffering=1) as logfile:
+        line = ""
+        current_result = []
+        collect = False
+        while True:
+            line, end_reached = update_line(ultimate_process, logfile)
+            if end_reached:
+                break
+
+            current_result += [line.rstrip() + "\n"]
+#             if not line or line.startswith("  - "):
+#                 collect = False
+#
+#             if not collect and current_result:
+#                 relevant_log += current_result
+#                 current_result = []
+#
+#             if collect or any([keyword in line for keyword in relevant_results]):
+#                 collect = True
+#                 current_result += [line.rstrip() + "\n"]
+
+            # show and update progress bars
+#             (
+#                 phase1_counter,
+#                 phase1_total,
+#                 progress_bar,
+#             ) = create_and_update_progress_bar_phase1(
+#                 line, phase1_counter, phase1_total, progress_bar
+#             )
+#             (
+#                 phase2_counter,
+#                 phase2_total,
+#                 progress_bar,
+#             ) = create_and_update_progress_bar_phase2(
+#                 line,
+#                 phase2_counter,
+#                 phase2_total,
+#                 progress_bar,
+#                 "Phase 2: Checking assertion(s)",
+#             )
+
+    logger.info(f"Extracting results to {args.reqcheck_relevant_log}")
+    with open(args.reqcheck_relevant_log, "w+") as relevant_logfile:
+        relevant_logfile.write("".join(relevant_log))
+
+
 
 def handle_analyze_requirements(args):
     logger.info("Running ReqChecker")
@@ -910,6 +1022,9 @@ def main():
         handle_log(args)
 
     args = set_complex_arg_defaults(args)
+
+    if args.generate_pea:
+        handle_generate_pea(args)
 
     if args.analyze_requirements:
         handle_analyze_requirements(args)

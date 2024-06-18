@@ -17,4 +17,9 @@ public class SrParseScopeBefore extends SrParseScope<SrParseScopeBefore> {
 	public String toString() {
 		return "Before \"" + getCdd1() + "\", ";
 	}
+
+	@Override
+	public ScopeType type() {
+		return ScopeType.Before;
+	}
 }

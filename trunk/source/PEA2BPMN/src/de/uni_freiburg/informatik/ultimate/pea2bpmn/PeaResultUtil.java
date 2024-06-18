@@ -86,4 +86,7 @@ public class PeaResultUtil {
 		mServices.getResultService().reportResult(Activator.PLUGIN_ID, result);
 	}
 
+	public static void testJSON() {
+		new com.alibaba.fastjson2.JSONObject();
+	}
 }

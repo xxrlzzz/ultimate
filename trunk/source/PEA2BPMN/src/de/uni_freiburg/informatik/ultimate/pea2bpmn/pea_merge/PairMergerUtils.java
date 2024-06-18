@@ -1,13 +1,12 @@
 package de.uni_freiburg.informatik.ultimate.pea2bpmn.pea_merge;
 
 
-import de.uni_freiburg.informatik.ultimate.lib.pea.Phase;
-import de.uni_freiburg.informatik.ultimate.lib.pea.Transition;
+import de.uni_freiburg.informatik.ultimate.lib.pea.*;
+import de.uni_freiburg.informatik.ultimate.lib.srparse.pattern.PatternType;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.ReqDesc;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PairMergerUtils {
     public static PEAFragment merge(PEAFragment left, PEAFragment right) {
@@ -40,7 +39,13 @@ public class PairMergerUtils {
      * @param target
      */
     public static void migratePhase(Phase source, Phase target, Set<Phase> phases, Phase skipDest) {
-        if (!source.getStateInvariant().isEqual(target.getStateInvariant())) {
+        if (source.getStateInvariant().implies(target.getStateInvariant())) {
+            // 增强target
+            source.migratePhantom(target);
+        } else if (target.getStateInvariant().implies(source.getStateInvariant())) {
+            // target 更强，不需要操作
+        } else {
+            // 错配
             throw new RuntimeException("migrate phase but not same state invariant\t" + source.getStateInvariant() + "\t" + target.getStateInvariant());
         }
 
@@ -49,11 +54,12 @@ public class PairMergerUtils {
             if (skipDest != null && transition.getDest().compareTo(skipDest) == 0) {
                 continue;
             }
-            Transition nt = target.addTransition(transition.getDest(), transition.getGuard(), transition.getResets());
-            transition.getClockWriter().forEach((c, t) -> {
-                // 先不考虑 clock writer 冲突的情况
-                nt.putClockWriter(c, t);
-            });
+            Phase dest = transition.getDest();
+            if (dest == source) {
+                // 特别的，如果是自循环，加到迁移后的状态上。
+                dest = target;
+            }
+            target.copyTran(dest, transition);
         }
         // incoming
         for (Phase phase : phases) {
@@ -71,38 +77,83 @@ public class PairMergerUtils {
                 // TODO: merge transition
                 continue;
             }
-            Transition nt = phase.addTransition(target, transition.getGuard(), transition.getResets());
-            transition.getClockWriter().forEach((c, t) -> {
-                nt.putClockWriter(c, t);
-            });
+            phase.copyTran(target, transition);
         }
         phases.remove(source);
     }
 
-    public static Phase[] findPhasesInReq(ReqDesc desc, Phase[] phases) {
+    public static Phase[] findPhasesInReq(ReqDesc desc, PhaseEventAutomata pea, CDD cond, CDD cons) {
         Phase condition = null, afterCond = null, constraint = null;
+        Phase[] phases = pea.getPhases();
+//        HashSet<Phase> init = new HashSet<>();
+//        Collections.addAll(init, pea.getInit());
+//        for (Phase phase : pea.getInit()) {
+//            init.add(phase.getStateInvariant());
+//        }
+        if (cond == null) {
+            cond = desc.firstCondition();
+        }
+        if (cons == null) {
+            cons = desc.firstConstraint();
+        }
+        List<Phase> conditions = new ArrayList<>(), constraints = new ArrayList<>();
         for (Phase phase : phases) {
-//            if (desc.firstCondition() == null || desc.firstCondition().getDecision() == null) {
-//                throw new RuntimeException("empty desc first conditon " + desc.getReq());
-//            }
-//            if (phase.getStateInvariant() == null || phase.getStateInvariant().getDecision() == null) {
-//                throw new RuntimeException("empty phase: " + phase + "\t"+ phase.getStateInvariant());
-//            }
-            if (phase.getStateInvariant().isEqual(desc.firstCondition())) {
-                condition = phase;
+//            System.out.println(phase + "\t" + phase.getStateInvariant());
+            if (!phase.getStateInvNoPhantom().isEqual(CDD.TRUE) && (phase.getStateInvNoPhantom().implies(cond) ||
+                    cond.implies(phase.getStateInvNoPhantom()))) {
+                conditions.add(phase);
             }
-            // TODO: fix after cond find
-            if (phase.getName().contains("After")) {
+            // 注意这里要与 after phase 的命名规则一致。
+            if (phase.getName().contains("After_" + cond)) {
                 afterCond = phase;
             }
-            if (phase.getStateInvariant().isEqual(desc.firstConstraint())) {
-                constraint = phase;
+
+            if (!phase.getStateInvNoPhantom().isEqual(CDD.TRUE) && (phase.getStateInvNoPhantom().implies(cons) ||
+                    cons.implies(phase.getStateInvNoPhantom()))) {
+                constraints.add(phase);
             }
         }
+
+        condition = choosePhase(desc.getReq().getId(), conditions);
+        constraint = choosePhase(desc.getReq().getId(), constraints);
+
+
+//        if (condition == null || constraint == null) {
+//            System.out.println("find Phase not found " + cond + "\t" + cons);
+//            for (Phase phase : phases) {
+//                System.out.printf(" %s", phase);
+//            }
+//            System.out.println();
+//            for (Phase phase : desc.phases) {
+//                System.out.printf(" %s", phase);
+//            }
+//        }
         return new Phase[]{condition, afterCond, constraint};
     }
 
+    private static Phase choosePhase(String id, List<Phase> phases) {
+        Phase result = null;
+        result = phases.get(0);
+        if (phases.size() > 1) {
+            for (Phase phase : phases) {
+                if (phase.getName().contains(id)) {
+                    result = phase;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
 
+
+    /**
+     * 合并 pea 的 phase, clocks, inits.
+     * @param left 输入1
+     * @param right 输入2
+     * @param phases 结果
+     * @param clocks 结果
+     * @param inits 结果
+     */
     public static void mergeCommon(PEAFragment left, PEAFragment right, Set<Phase> phases, Set<String> clocks, Set<Phase> inits) {
         phases.addAll(List.of(left.getPhases()));
         phases.addAll(List.of(right.getPhases()));
@@ -114,4 +165,70 @@ public class PairMergerUtils {
         inits.addAll(List.of(right.getInit()));
     }
 
+
+    public static PEAFragment mergeMain(HashMap<String, PEAFragment> peas, List<MergeDesc> descs) {
+        PEAFragment result = null;
+        for (MergeDesc desc : descs) {
+            System.out.println("Start merge " + desc.type + " " + desc.leftId + " " + desc.rightId);
+            PEAFragment left = peas.get(desc.leftId);
+            PEAFragment right = peas.get(desc.rightId);
+            if (left == null || right == null) {
+                throw new RuntimeException("not found pea");
+            }
+            PEAFragment merged = null;
+            List<CDD> mergeTargets = null;
+            StringBuilder targets = new StringBuilder();
+            if (desc.mergeTargets != null && !desc.mergeTargets.isEmpty()) {
+                mergeTargets = new ArrayList<>();
+                for (String target : desc.mergeTargets) {
+                    mergeTargets.add(BooleanDecision.create(target));
+                    targets.append(target);
+                }
+                System.out.println("merge target is " + targets);
+            }
+            switch (desc.type) {
+                case "complete":
+                    merged = new CompleteMerge().merge(left, right, mergeTargets);
+                    break;
+                case "condition":
+                    merged = new ConditionMerge().merge(left, right, mergeTargets);
+                    break;
+                case "constraint":
+                    merged = new ConstraintMerge().merge(left, right, mergeTargets);
+                    break;
+                case "sequence":
+                    merged = new SequenceMerge().merge(left, right, mergeTargets);
+                    break;
+                case "part-sequence":
+                    merged = new PartSequenceMerge().merge(left, right, mergeTargets);
+                    break;
+                case "scope-sequence":
+                    merged = new ScopeSequenceMerge().merge(left, right, mergeTargets);
+                    break;
+                default:
+                    throw new RuntimeException("unsupported merge type " + desc.type);
+            }
+            peas.put(desc.leftId, merged);
+            peas.put(desc.rightId, merged);
+            result = merged;
+        }
+        // 到终点的都删掉
+        Phase dest = result.getDestPhase();
+        for (Phase p : result.getPhases()) {
+            Transition tr = p.getOutgoingTransition(dest);
+            if (tr != null) {
+                p.removeTransition(tr);
+            }
+        }
+        Set<Phase> phases = new HashSet<>(Set.of(result.getPhases()));
+        phases.remove(dest);
+        PEAFragment fragment = new PEAFragment(result.getName(), phases.toArray(new Phase[]{}),
+                result.getInit(), result.getClocks());
+        Set<ReqDesc> merged = result.getMergedDesc();
+        for (ReqDesc desc : merged) {
+            fragment.addMergedDesc(desc);
+        }
+//        result.getDestPhase().setStateInvariant(BooleanDecision.create("termination()"));
+        return fragment;
+    }
 }

@@ -10,7 +10,7 @@ import de.uni_freiburg.informatik.ultimate.lib.srparse.pattern.ResponseDelayBoun
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.ReqDesc;
 
-import java.util.List;
+import java.util.*;
 
 public class ResponseDelayBoundL2PeaImpl extends AbsPeaImpl<ResponseDelayBoundL2Pattern> {
     //  ResponseDelayBoundL2Pattern or EdgeResponseDelayBoundL2Patter
@@ -44,7 +44,7 @@ public class ResponseDelayBoundL2PeaImpl extends AbsPeaImpl<ResponseDelayBoundL2
         CDD consDr = RangeDecision.create(sClock, RangeDecision.OP_GTEQ, c2);
         Phase par = new Phase(id + "_st_" + ar, CDD.TRUE, consDl);
         Phase prs = new Phase(id + "_st2", S, CDD.TRUE);
-        pr.addSimpleTran(par);
+        pr.addTransition(par);
         par.addTransition(prs, consDl, new String[]{sClock});
 
         pr.addTransition(pr, rDr, new String[]{});
@@ -56,9 +56,11 @@ public class ResponseDelayBoundL2PeaImpl extends AbsPeaImpl<ResponseDelayBoundL2
         String peaName = mReq.getId() + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, par, prs}, new Phase[]{pr},
                 List.of(arClock, sClock));
-        pea.addOut(prs, consDr);
+        pea.setDestPhase(p_true);
 
-        pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), CDD.TRUE, consDl, consDr));
+        Set<Phase> phase = new HashSet<>();
+        Collections.addAll(phase, pea.getPhases());
+        pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), CDD.TRUE, consDl, consDr, phase));
         return pea;
     }
 }

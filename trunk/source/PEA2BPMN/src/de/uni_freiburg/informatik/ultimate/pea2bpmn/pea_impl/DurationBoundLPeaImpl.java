@@ -34,7 +34,7 @@ public class DurationBoundLPeaImpl extends AbsPeaImpl<DurationBoundLPattern> {
         String peaName = id + "-" + mReq.getName();
         PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr}, new Phase[]{pr},
                 Collections.singletonList(rClock));
-        pea.addOut(pr, consDr);
+        pea.setDestPhase(p_true);
 
         pea.setDesc(new ReqDesc(mReq, List.of(), List.of(R), CDD.TRUE, CDD.TRUE, consDr));
         return pea;

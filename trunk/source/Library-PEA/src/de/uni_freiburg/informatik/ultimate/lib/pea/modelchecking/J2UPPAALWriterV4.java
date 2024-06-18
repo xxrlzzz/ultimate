@@ -114,14 +114,12 @@ private final Vector<String> disjuncts = new Vector<String>();
     
     private String getClocksToReset(Phase state, List<String> peaClocks){
     	final String initClockString = state.getClockInvariant().toString();
-    	Boolean firstClock = true;
 		//List<String> peaClocks = pea.getClocks();
 		String reset = ""; 
 		for (int j =0; j<peaClocks.size(); j++){
 			if (initClockString.contains(peaClocks.get(j))){
-				if (firstClock){ //the end of the string may not end with a comma, otherwise uppaal will grump
+                if (reset.isEmpty()) {
 					reset = peaClocks.get(j) + ":= 0 ";
-					firstClock = false;
 				}
 				else {
 					reset = ", "+peaClocks.get(j) + ":= 0 "; // the clocks need to be separated via comma
@@ -228,7 +226,7 @@ private final Vector<String> disjuncts = new Vector<String>();
             assignment.append(resets[i]).append(":=0, ");
         }
         assignment.append("timer:=0");
-        
+
         for(int i=0; i<disjuncts.length; i++) {
             buf.append("<transition>\n"+
             "  <source ref = \""+transition.getSrc().getName()+"\"/>\n"+

@@ -33,12 +33,9 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
-import de.uni_freiburg.informatik.ultimate.lib.pea.CDD;
-import de.uni_freiburg.informatik.ultimate.lib.pea.CounterTrace;
+import de.uni_freiburg.informatik.ultimate.lib.pea.*;
 import de.uni_freiburg.informatik.ultimate.lib.pea.CounterTrace.BoundTypes;
 import de.uni_freiburg.informatik.ultimate.lib.pea.CounterTrace.DCPhase;
-import de.uni_freiburg.informatik.ultimate.lib.pea.PhaseEventAutomata;
-import de.uni_freiburg.informatik.ultimate.lib.pea.Trace2PeaCompilerStateless;
 import de.uni_freiburg.informatik.ultimate.lib.smtlibutils.SmtUtils;
 import de.uni_freiburg.informatik.ultimate.lib.srparse.Durations;
 import de.uni_freiburg.informatik.ultimate.lib.srparse.SrParseScope;
@@ -128,10 +125,13 @@ public abstract class PatternType<T extends PatternType<?>> {
 			final List<Entry<CounterTrace, PhaseEventAutomata>> peas = new ArrayList<>(cts.size());
 			int i = 0;
 			for (final CounterTrace ct : cts) {
-				final Trace2PeaCompilerStateless compiler =
-						new Trace2PeaCompilerStateless(logger, name + "_ct" + i, ct, durations.getConstNames());
+//				final Trace2PeaCompilerStateless compiler =
+//						new Trace2PeaCompilerStateless(logger, name + "_ct" + i, ct, durations.getConstNames());
+				final Trace2PeaCompiler compiler =
+						new Trace2PeaCompiler(logger, durations.getConstNames());
 				++i;
-				peas.add(new Pair<>(ct, compiler.getResult()));
+//				peas.add(new Pair<>(ct, compiler.getResult()));
+				peas.add(new Pair<>(ct, compiler.compile(name + "_ct" + i, ct)));
 			}
 			mPEAs = new ReqPeas(this, peas);
 		}
@@ -174,29 +174,29 @@ public abstract class PatternType<T extends PatternType<?>> {
 		return new CounterTrace(phases);
 	}
 
-	protected static DCPhase phase(final CDD x) {
+	public static DCPhase phase(final CDD x) {
 		return new CounterTrace.DCPhase(x);
 	}
 
-	protected static DCPhase phase(final CDD x, final BoundTypes boundType, final int duration) {
+	public static DCPhase phase(final CDD x, final BoundTypes boundType, final int duration) {
 		return new CounterTrace.DCPhase(x, boundType.asValue(), duration);
 	}
 
 	/**
 	 * @return A phase with bound that can be empty
 	 */
-	protected static DCPhase phaseE(final CDD x, final BoundTypes boundType, final int duration) {
+	public static DCPhase phaseE(final CDD x, final BoundTypes boundType, final int duration) {
 		return new CounterTrace.DCPhase(cddT(), x, boundType.asValue(), duration, Collections.emptySet(), true);
 	}
 
 	/**
 	 * @return A true-{@link DCPhase} that can be empty.
 	 */
-	protected static DCPhase phaseT() {
+	public static DCPhase phaseT() {
 		return new CounterTrace.DCPhase();
 	}
 
-	protected static CDD cddT() {
+	public static CDD cddT() {
 		return CDD.TRUE;
 	}
 

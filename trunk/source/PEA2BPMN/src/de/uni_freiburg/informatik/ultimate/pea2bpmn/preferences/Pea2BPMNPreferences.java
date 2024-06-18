@@ -33,6 +33,8 @@ import de.uni_freiburg.informatik.ultimate.core.model.preferences.PreferenceType
 import de.uni_freiburg.informatik.ultimate.core.model.preferences.UltimatePreferenceItem;
 import de.uni_freiburg.informatik.ultimate.core.model.services.IUltimateServiceProvider;
 
+import java.io.File;
+
 /**
  *
  * @author Daniel Dietsch (dietsch@informatik.uni-freiburg.de)
@@ -107,10 +109,13 @@ public class Pea2BPMNPreferences extends UltimatePreferenceInitializer {
 
 	public static final String DUMP_PATH_LABEL = "Dump path:";
 	private static final String DUMP_PATH_DEFAULT = System
-			.getProperty("java.io.tmpdir");
+			.getProperty("java.io.tmpdir") + File.separatorChar + "xxrl";
 
 	public static final String FILE_NAME_LABEL = "File name:";
 	private static final String FILE_NAME_DEFAULT = "reqPrinter.txt";
+
+	public static final String MERGE_FILE_LABEL = "Merge File name:";
+	private static final String MERGE_FILE_DEFAULT = "mergeDesc.json";
 
 
 	public enum PEATransformerMode {
@@ -128,6 +133,7 @@ public class Pea2BPMNPreferences extends UltimatePreferenceInitializer {
 			new UltimatePreferenceItem<>(LABEL_SAVE_DIR, DEF_SAVE_DIR, PreferenceType.Boolean),
 			new UltimatePreferenceItem<>(DUMP_PATH_LABEL, DUMP_PATH_DEFAULT, PreferenceType.Directory),
 			new UltimatePreferenceItem<>(FILE_NAME_LABEL, FILE_NAME_DEFAULT, PreferenceType.String),
+			new UltimatePreferenceItem<>(MERGE_FILE_LABEL, MERGE_FILE_DEFAULT, PreferenceType.String),
 //			new UltimatePreferenceItem<>(LABEL_TRANSFOMER_MODE, TRANSFOMER_MODE, DESC_TRANSFOMER_MODE,
 //					PreferenceType.Combo, PEATransformerMode.values()),
 //			new UltimatePreferenceItem<>(LABEL_CHECK_VACUITY, DEF_CHECK_VACUITY, DESC_CHECK_VACUITY,

@@ -36,9 +36,19 @@ public class Transition {
 	private HashMap<String, Integer> mClockWriter;
 
 	/**
-	 * whether this transation launch a new pea.
+	 * Whether this transition launch a parallel pea.
 	 */
 	public boolean isParallel = false;
+	/**
+	 * Whether this transition is an eventual transition.
+	 */
+	public boolean isEventual = false;
+	/**
+	 * Error transition, not likely to be used, since we don't have error state.
+	 */
+	public boolean isError = false;
+
+	public CDD mTarget = CDD.TRUE;
 
 
 	public Transition(final Phase src, final CDD guard, final String[] resets, final Phase dest) {

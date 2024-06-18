@@ -37,7 +37,7 @@ create_tool_zips() {
 
     # ReqCheck
 #    exit_on_fail bash createReqCheckZip.sh ReqCheck $platform ReqCheck.xml ReqCheck.xml
-    exit_on_fail bash createReqCheckZip.sh ReqCheck linux ReqCheck.xml ReqCheck.xml
+    exit_on_fail bash createReqCheckZip.sh ReqCheck linux ReqCheck.xml ReqCheck.xml PEAGen.xml
 #  done
 }
 

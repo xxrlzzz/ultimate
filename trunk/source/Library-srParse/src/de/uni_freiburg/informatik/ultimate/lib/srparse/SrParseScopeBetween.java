@@ -17,4 +17,9 @@ public class SrParseScopeBetween extends SrParseScope<SrParseScopeBetween> {
 	public String toString() {
 		return "Between \"" + getCdd1() + "\" and \"" + getCdd2() + "\", ";
 	}
+
+	@Override
+	public ScopeType type() {
+		return ScopeType.Between;
+	}
 }

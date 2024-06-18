@@ -4,6 +4,14 @@ import de.uni_freiburg.informatik.ultimate.lib.pea.CDD;
 
 public abstract class SrParseScope<T extends SrParseScope<?>> {
 
+	public enum ScopeType {
+		After,
+		Globally,
+		Before,
+		Between,
+		AfterUntil,
+	}
+
 	private final CDD mCdd1;
 	private final CDD mCdd2;
 
@@ -13,6 +21,8 @@ public abstract class SrParseScope<T extends SrParseScope<?>> {
 	}
 
 	public abstract T create(CDD cdd1, CDD cdd2);
+
+	public abstract ScopeType type();
 
 	public CDD getCdd1() {
 		return mCdd1;

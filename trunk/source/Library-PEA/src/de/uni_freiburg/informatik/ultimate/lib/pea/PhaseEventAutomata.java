@@ -226,7 +226,12 @@ public class PhaseEventAutomata implements Comparable<Object> {
 		} else {
 			newVariables = new HashMap<>();
 			for (final String var : mVariables.keySet()) {
-				if (b.getVariables().containsKey(var) && !b.getVariables().get(var).equals(mVariables.get(var))) {
+//				if (b.getVariables().containsKey(var)) {
+//					if (b.getVariables().get(var) == null || mVariables.get(var)==null) {
+//						throw new RuntimeException("empty??" + b.getVariables().get(var)  + mVariables.get(var));
+//					}
+//				}
+				if (b.getVariables().containsKey(var) && b.getVariables().get(var) != null && !b.getVariables().get(var).equals(mVariables.get(var))) {
 					throw new RuntimeException("Different type definitions of " + var + "found!");
 				}
 				newVariables.put(var, mVariables.get(var));

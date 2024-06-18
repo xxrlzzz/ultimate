@@ -7,6 +7,7 @@ import de.uni_freiburg.informatik.ultimate.lib.pea.Transition;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.ReqDesc;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -16,23 +17,44 @@ import java.util.Set;
 public class ConditionMerge extends IPeaMerger {
 
     @Override
-    public PEAFragment merge(PEAFragment left, PEAFragment right) {
-        preMerge(left, right);
-
-        if (mConditionPhase == null || oConditionPhase == null || mConsPhase == null || oConsPhase == null) {
+    public PEAFragment merge(PEAFragment left, PEAFragment right, List<CDD> mergeTarget) {
+        CDD mergeT = null;
+        if (mergeTarget != null) {
+            assert mergeTarget.size() == 1;
+            mergeT = mergeTarget.get(0);
+        } else {
+            mergeT = left.getDesc().firstCondition();
+        }
+        mDesc = left.findDescByCond(mergeT);
+        oDesc = right.findDescByCond(mergeT);
+        preMerge(left, right, mergeT, mDesc.firstConstraint(), mergeT, oDesc.firstConstraint());
+        if (mCondPhase == null || oCondPhase == null || mConsPhase == null || oConsPhase == null) {
             throw new RuntimeException("not found condition/constraint phase when merge");
         }
 
         // 变量没对上
-        if (!mConditionPhase.equalByState(oConditionPhase)) {
-            throw new RuntimeException("输入合并， 变量失配");
+        if (!mCondPhase.equalByState(oCondPhase)) {
+            throw new RuntimeException("输入合并， 变量失配 " + mCondPhase.getStateInvariant() + "\t" + oCondPhase.getStateInvariant());
         }
 
         // migrate condition phase
         // 条件的时钟不变量取交集
-        CDD newClock = mConditionPhase.getClockInvariant().and(oConditionPhase.getClockInvariant());
-        mConditionPhase.setClockInvariant(newClock);
-        PairMergerUtils.migratePhase(oConditionPhase, mConditionPhase, phases, null);
+//        CDD newClock = mCondPhase.getClockInvariant().and(oCondPhase.getClockInvariant());
+        CDD newClock = mCondPhase.getClockInvariant().or(oCondPhase.getClockInvariant());
+
+//        System.out.println("mCond clock " + mCondPhase.getClockInvariant() + "\toCond clock" + oCondPhase.getClockInvariant());
+
+        mCondPhase.setClockInvariant(newClock);
+
+        PairMergerUtils.migratePhase(oCondPhase, mCondPhase, phases, null);
+
+
+        // 到另一条分支的变迁为并发。
+        Transition tr = mCondPhase.getOutgoingTransition(oConsPhase);
+        if (mAfCondPhase != null) {
+            // TODO 这里考虑after
+        }
+        tr.isParallel = true;
 
         ReqDesc leftDesc = left.getDesc(), rightDesc = right.getDesc();
         boolean mhasConsDl = left.getDesc().constraintDelay != CDD.TRUE,
@@ -48,9 +70,9 @@ public class ConditionMerge extends IPeaMerger {
                 return null;
             }
 
-            Transition moT = mConditionPhase.getOutgoingTransition(mAfterCondPhase),
-                    ooT = oConditionPhase.getOutgoingTransition(oAfterCondPhase);
-            if (mAfterCondPhase == null || oAfterCondPhase == null || moT == null || ooT == null) {
+            Transition moT = mCondPhase.getOutgoingTransition(mAfCondPhase),
+                    ooT = oCondPhase.getOutgoingTransition(oAfCondPhase);
+            if (mAfCondPhase == null || oAfCondPhase == null || moT == null || ooT == null) {
                 throw new RuntimeException("not found after condition phase when merge");
             }
             // 有两种做法：把长的delay拆成两阶段/把小的升级成大的
@@ -62,28 +84,31 @@ public class ConditionMerge extends IPeaMerger {
             CDD bothDelay = leftDesc.constraintDelay.and(rightDesc.constraintDelay);
             if (bothDelay.isEqual(leftDesc.constraintDelay)) {
                 // 我更小，迁移到大的
-                PairMergerUtils.migratePhase(mAfterCondPhase, oAfterCondPhase, phases, null);
+                PairMergerUtils.migratePhase(mAfCondPhase, oAfCondPhase, phases, null);
                 moT.putClockWriter(moT.getGuard().getDecision().getVar(), oV - mV); // diff of two phase
             } else if (bothDelay.isEqual(rightDesc.constraintDelay)) {
                 // oth has smaller range
-                PairMergerUtils.migratePhase(oAfterCondPhase, mAfterCondPhase, phases, null);
+                PairMergerUtils.migratePhase(oAfCondPhase, mAfCondPhase, phases, null);
                 ooT.putClockWriter(moT.getGuard().getDecision().getVar(), mV - oV); // diff of two phase
             } else {
                 throw new RuntimeException("unable to merge due to delay guard");
             }
         } else if (mhasConsDl) {
             // 我有delay 你没有, 你的dest 做我的 delay
-            borrowAsAfterPhase(mConditionPhase, mAfterCondPhase, oConsPhase, mConsPhase, phases);
+            borrowAsAfterPhase(mCondPhase, mAfCondPhase, oConsPhase, mConsPhase, phases);
         } else if (ohasConsDl) {
             // 你有 delay 我没有, 我的dest 做你的 delay
-            borrowAsAfterPhase(mConditionPhase, oAfterCondPhase, mConsPhase, oConsPhase, phases);
+            borrowAsAfterPhase(mCondPhase, oAfCondPhase, mConsPhase, oConsPhase, phases);
         }
 
-        phases.remove(oConditionPhase);
-        inits.remove(oConditionPhase);
+        // 处理终点
+        Phase nDest = processDest(left, right);
+
+        phases.remove(oCondPhase);
+        inits.remove(oCondPhase);
         // 要不要删其他的？
 
-        return makeFragment(left,  right);
+        return makeFragment(left, right, nDest);
     }
 
 
@@ -111,4 +136,17 @@ public class ConditionMerge extends IPeaMerger {
         t.isParallel = true;
     }
 
+    @Override
+    protected void processDestExt(Phase nDest) {
+        Transition tr = mCondPhase.getOutgoingTransition(oDest);
+        if (tr != null) {
+            mCondPhase.removeTransition(tr);
+            mCondPhase.addTransition(nDest, tr.getGuard(), tr.getResets());
+        }
+
+        // 合并自循环
+        mCondPhase.mergeTrans(mCondPhase, true);
+        // 合并到终点的变迁
+        mCondPhase.mergeTrans(nDest, false);
+    }
 }

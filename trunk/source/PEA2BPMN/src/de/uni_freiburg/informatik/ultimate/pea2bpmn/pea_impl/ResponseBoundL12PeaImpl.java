@@ -8,58 +8,129 @@ import de.uni_freiburg.informatik.ultimate.lib.srparse.pattern.ResponseBoundL12P
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.PEAFragment;
 import de.uni_freiburg.informatik.ultimate.pea2bpmn.req.ReqDesc;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ResponseBoundL12PeaImpl extends AbsPeaImpl<ResponseBoundL12Pattern> {
+    final int c1;
+    final int c2;
     public ResponseBoundL12PeaImpl(PatternType<?> req) {
         super(req);
         final CDD R = mReq.getCdds().get(1);
         final CDD S = mReq.getCdds().get(0);
-        mClocks.add(R.toString() + "c");
-        mClocks.add(S.toString() + "c");
+        mClocks.add(R.toUppaalString() + "c");
+        mClocks.add(S.toUppaalString() + "c");
+        c1 = SmtUtils.toInt(mReq.getDurations().get(0)).intValueExact();
+        c2 = SmtUtils.toInt(mReq.getDurations().get(1)).intValueExact();
+
     }
 
     @Override
     public PEAFragment generate() {
-        // P and Q are reserved for scope.
-        // R, S, ... are reserved for CDDs, but they are parsed in reverse order.
-        final SrParseScope<?> scope = mReq.getScope();
         final String id = mReq.getId();
         final CDD R = mReq.getCdds().get(1);
         final CDD S = mReq.getCdds().get(0);
         final CDD R_S = R.and(S);
         String rClock = mClocks.get(0);
         String sClock = mClocks.get(1);
-        final int c1 = SmtUtils.toInt(mReq.getDurations().get(0)).intValueExact();
-        final int c2 = SmtUtils.toInt(mReq.getDurations().get(1)).intValueExact();
 
-//        String rClock = R + "t";
-//        String sClock = S + "t";
-
-        CDD conditionDr = RangeDecision.create(rClock, RangeDecision.OP_GTEQ, c1);
-        CDD consDr =  RangeDecision.create(sClock, RangeDecision.OP_GTEQ, c2);
+        CDD condDr = RangeDecision.create(rClock, RangeDecision.OP_GTEQ, c1);
+        CDD n_condDr = condDr.negate();
+        CDD consDr = RangeDecision.create(sClock, RangeDecision.OP_GTEQ, c2);
         Phase pr = new Phase(id + "_st1", R);
         Phase ps = new Phase(id + "_st2", S);
         Phase prs = new Phase(id + "_st3", R_S);
         Phase p_true = new Phase(id + "_st4", R.negate().and(S.negate()));
-        pr.addSelfTrans();
+        pr.addTransition(pr, n_condDr);
         ps.addSelfTrans();
         prs.addSelfTrans();
         p_true.addSelfTrans();
 
-        pr.addTransition(ps, conditionDr, new String[]{sClock});
-        pr.addTransition(prs, conditionDr, new String[]{sClock});
-        prs.addSimpleTran(ps);
-        pr.addTransition(p_true, conditionDr.negate(), new String[]{});
-        prs.addSimpleTran(p_true);
-        ps.addSimpleTran(p_true);
-        String peaName = mReq.getId() + "-" + mReq.getName();
-        PEAFragment pea = new PEAFragment(peaName, new Phase[]{pr, ps,prs,p_true}, new Phase[]{pr}, mClocks);
-        pea.addOut(ps, consDr);
-        pea.addOut(prs, consDr);
-        pea.addOut(pr, conditionDr.negate());
-        pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), conditionDr, CDD.TRUE, consDr));
+        pr.addTransition(ps, condDr, new String[]{sClock});
+        pr.addTransition(prs, condDr, new String[]{sClock});
+        prs.addTransition(ps);
+        pr.addTransition(p_true, n_condDr, new String[]{});
+        prs.addTransition(p_true);
+        ps.addTransition(p_true);
+        PEAFragment pea = new PEAFragment(getPEAName(), new Phase[]{pr, ps, prs, p_true},
+                new Phase[]{pr}, mClocks);
+        pea.setDestPhase(p_true);
+        pea.setEntryReset(rClock);
+        pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), condDr, CDD.TRUE, consDr));
         return pea;
+    }
+
+    @Override
+    CDD condDr() {
+        String rClock = mClocks.get(0);
+        return RangeDecision.create(rClock, RangeDecision.OP_GTEQ, c1);
+    }
+
+    @Override
+    CDD consDl() {
+        String sClock = mClocks.get(1);
+        return RangeDecision.create(sClock, RangeDecision.OP_GTEQ, c2);
+    }
+
+    @Override
+    void handleOnePair(CDD R, CDD S, int i, int j, HashMap<String, Phase> phases, ArrayList<Phase> init, Phase p_true) {
+        String sClock = mClocks.get(1);
+        String rName = id + "_st1_" + i, sName = id + "_st2_" + j;
+        Phase pr = phases.get(rName);
+        Phase ps = phases.get(sName);
+        CDD condDr = condDr();
+        CDD n_condDr = condDr.negate();
+        CDD consDr = consDr();
+        if (pr == null) {
+            pr = new Phase(rName, R);
+            pr.addTransition(pr, n_condDr);
+            pr.addTransition(p_true, n_condDr);
+            phases.put(rName,pr);
+            init.add(pr);
+        }
+        if (ps == null) {
+            ps = new Phase(sName, S);
+            ps.addSelfTrans();
+            ps.addTransition(p_true, consDr);
+            phases.put(sName,ps);
+        }
+        ps.setStateInvariant(ps.getStateInvariant().and(R.operator("p")));
+        ps.addPhantom(R, false);
+
+        pr.addTransition(ps, condDr, new String[]{sClock});
+        pr.addTransition(p_true, n_condDr, new String[]{});
+    }
+
+    @Override
+    public PEAFragment gen4merge() {
+        return gen4mergeCommon();
+//        final String id = mReq.getId();
+//        final CDD R = mReq.getCdds().get(1);
+//        final CDD S = mReq.getCdds().get(0);
+//        String rClock = mClocks.get(0);
+//        String sClock = mClocks.get(1);
+//
+//        CDD condDr = RangeDecision.create(rClock, RangeDecision.OP_GTEQ, c1);
+//        CDD n_condDr = condDr.negate();
+//        CDD consDr = RangeDecision.create(sClock, RangeDecision.OP_GTEQ, c2);
+//        Phase pr = new Phase(id + "_st1", R);
+//        Phase ps = new Phase(id + "_st2", R.operator("p").and(S));
+//        ps.addPhantom(R, false);
+//        Phase p_true = new Phase(id + "_st3", R.negate().and(S.negate()));
+//        pr.addTransition(pr, n_condDr);
+//        ps.addSelfTrans();
+//        p_true.addSelfTrans();
+//
+//        pr.addTransition(ps, condDr, new String[]{sClock});
+//        pr.addTransition(p_true, n_condDr, new String[]{});
+//        ps.addTransition(p_true, consDr);
+//        PEAFragment pea = new PEAFragment(getPEAName(), new Phase[]{pr, ps, p_true},
+//                new Phase[]{pr}, mClocks);
+//        pea.setDestPhase(p_true);
+//        pea.setEntryReset(rClock);
+//
+//        Set<Phase> phase = new HashSet<>();
+//        Collections.addAll(phase, pea.getPhases());
+//        pea.setDesc(new ReqDesc(mReq, List.of(R), List.of(S), condDr, CDD.TRUE, consDr, phase));
+//        return pea;
     }
 }

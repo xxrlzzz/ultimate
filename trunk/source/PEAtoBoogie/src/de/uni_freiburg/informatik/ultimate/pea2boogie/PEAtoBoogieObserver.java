@@ -61,7 +61,7 @@ public class PEAtoBoogieObserver extends BaseObserver {
 		return null;
 	}
 
-	private IElement generateReqCheckBoogie(final List<PatternType<?>> patterns) {
+	public IElement generateReqCheckBoogie(final List<PatternType<?>> patterns) {
 		final Req2BoogieTranslator translator =
 				new Req2BoogieTranslator(mServices, mLogger, patterns, Collections.emptyList());
 		final VerificationResultTransformer reporter =
